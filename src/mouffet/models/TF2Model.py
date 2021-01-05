@@ -100,7 +100,7 @@ class TF2Model(DLModel):
         if from_epoch:
             self.load_weights(
                 self.opts.get_intermediate_path(
-                    from_epoch, version=self.opts.get("version", -1)
+                    from_epoch, version=self.opts["model"].get("from_version", -1)
                 )
             )
         epoch_save_step = self.opts["model"].get("epoch_save_step", None)

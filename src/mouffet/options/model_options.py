@@ -96,6 +96,4 @@ class ModelOptions(Options):
                             version = res + 1
                     except ValueError:
                         continue
-        if self.opts["model"].get("from_epoch", 0) and version > 0:
-            version -= 1
         return version

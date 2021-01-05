@@ -194,4 +194,3 @@ class Evaluator(ModelHandler):
         if self.opts.get("save_results", True):
             self.save_results(stats)
         return stats
-

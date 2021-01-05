@@ -1,5 +1,4 @@
 from .options import Options
-from ..utils import common as common_utils
 
 
 class DatabaseOptions(Options):
@@ -25,4 +24,3 @@ class DatabaseOptions(Options):
 
     def has_type(self, db_type):
         return db_type in self.types
-

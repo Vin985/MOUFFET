@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
 from importlib import import_module
 
-from dlbd.options.model_options import ModelOptions
-
 from ..data.data_handler import DataHandler
+from ..options.model_options import ModelOptions
 from ..utils import file as file_utils
 
 

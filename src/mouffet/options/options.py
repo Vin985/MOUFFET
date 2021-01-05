@@ -33,9 +33,6 @@ class Options:
     def __str__(self) -> str:
         return str(self.opts)
 
-    def __format__(self, format_spec: str) -> str:
-        return super().__format__(format_spec)
-
     def __contains__(self, item):
         return item in self.opts
 

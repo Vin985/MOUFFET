@@ -11,7 +11,7 @@ def force_immutable(item):
     try:
         hash(item)
         return item
-    except:
+    except Exception:
         return tuple(item)
 
 

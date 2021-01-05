@@ -12,13 +12,12 @@ from ..utils import common as common_utils
 from ..utils.file import ensure_path_exists, get_full_path, list_files
 from ..options.database_options import DatabaseOptions
 
-"""
-A class that handles all data related business. While this class provides convenience functions,
-this should be subclassed
-"""
-
 
 class DataHandler(ABC):
+    """
+    A class that handles all data related business. While this class provides convenience functions,
+    this should be subclassed
+    """
 
     DB_TYPE_TRAINING = "training"
     DB_TYPE_VALIDATION = "validation"
@@ -92,10 +91,10 @@ class DataHandler(ABC):
 
     def get_subfolders(self, database):
         """Generate subfolders based on a list provided in the 'use_subfolders' option.
-        For each item in the list, this function will try to call the 
+        For each item in the list, this function will try to call the
         get_itemname_folder_path(database) method from the DataHandler instance, where itemname is
         the name of the current item in the list. For example, if the item is "class", then the
-        function will attempt to call the 'get_class_folder_path' method. 
+        function will attempt to call the 'get_class_folder_path' method.
         If the method is not found, the option is skipped.
         Note that the called function should have the following signature:
         get_itemname_folder_path(database) -> str or pathlib.Path

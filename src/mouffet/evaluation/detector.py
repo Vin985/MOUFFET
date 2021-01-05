@@ -1,5 +1,3 @@
-# from pandarallel import pandarallel
-
 from abc import ABC, abstractmethod
 
 
@@ -25,4 +23,3 @@ class Detector(ABC):
     @abstractmethod
     def evaluate(self, predictions, tags, options):
         pass
-

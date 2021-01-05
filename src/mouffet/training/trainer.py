@@ -1,7 +1,6 @@
 import traceback
 
-from dlbd.options.model_options import ModelOptions
-
+from ..options.model_options import ModelOptions
 from ..utils import common as common_utils
 from ..utils.model_handler import ModelHandler
 
