@@ -43,6 +43,9 @@ class Options:
             )
         return self.DEFAULT_VALUES["options"][option]
 
+    def add_option(self, name, value):
+        self.opts[name] = value
+
     def get(self, value, default):
         return self.opts.get(value, default)
 
