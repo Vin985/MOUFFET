@@ -6,9 +6,8 @@ from pathlib import Path
 import feather
 import pandas as pd
 import plotnine
+from mouffet.options.model_options import ModelOptions
 from plotnine.labels import ggtitle
-
-from dlbd.options.model_options import ModelOptions
 
 from ..utils import common as common_utils
 from ..utils import file as file_utils
@@ -164,7 +163,7 @@ class Evaluator(ModelHandler):
             print(
                 "\033[92m"
                 + "Evaluating model {0} on test dataset {1}".format(
-                    model_opts.model_name, database.name
+                    model_opts.name, database.name
                 )
                 + "\033[0m"
             )
