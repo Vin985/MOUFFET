@@ -174,12 +174,12 @@ class TF2Model(DLModel):
 
     def save_weights(self, path=None):
         if not path:
-            path = str(self.opts.results_dir / self.opts.model_id)
+            path = str(self.opts.results_save_dir / self.opts.model_id)
         self.model.save_weights(path)
 
     def load_weights(self, path=None):
         if not path:
-            path = str(self.opts.results_dir / self.opts.model_id)
+            path = str(self.opts.results_load_dir / self.opts.model_id)
         self.model.load_weights(path)
 
     @abstractmethod

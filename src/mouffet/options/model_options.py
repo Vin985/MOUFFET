@@ -15,15 +15,33 @@ class ModelOptions(Options):
     def __init__(self, opts):
         super().__init__(opts)
         self._model_id = ""
-        self._version = None
+        self.previous_version = self.get_last_version()
 
     @property
     def results_dir_root(self):
         return self.model_dir / self.model_id
 
     @property
-    def results_dir(self):
-        return self.results_dir_root / str(self.version)
+    def results_save_dir(self):
+        return self.get_results_dir()
+
+    @property
+    def results_load_dir(self):
+        return self.get_results_dir(save=False)
+
+    def version(self, save=True):
+        return self.opts.get("version", self.previous_version + int(save))
+
+    @property
+    def load_version(self):
+        return self.version(save=False)
+
+    @property
+    def save_version(self):
+        return self.version(save=True)
+
+    def get_results_dir(self, save=True):
+        return self.results_dir_root / str(self.version(save))
 
     def get_intermediate_path(self, epoch, version=None, as_string=True):
         """Get the path where intermediate results for a specific epoch are saved
@@ -40,15 +58,15 @@ class ModelOptions(Options):
         Returns:
             [type]: [description]
         """
-        # * By default, use the current version results dir
-        res_dir = self.results_dir
+        # * By default, use the save results dir (next version)
+        res_dir = self.results_save_dir
         if version:
             if version > 0:
                 # * A positive version number is provided, use this number
                 res_dir = self.results_dir_root / str(version)
             else:
                 # * The version number is negative, use previous version
-                res_dir = self.results_dir_root / str(self.version - 1)
+                res_dir = self.results_dir_root / str(self.previous_version)
         path = res_dir / self.intermediate_save_dir / ("epoch_" + str(epoch))
         if as_string:
             return str(path)
@@ -76,24 +94,25 @@ class ModelOptions(Options):
         mid = model_id.format(**res)
         return mid
 
-    @property
-    def version(self):
-        if self._version is None:
-            v = self.opts.get("version", None)
-            if not v:
-                v = self.get_model_version(self.results_dir_root)
-            self._version = v
-        return self._version
+    # @property
+    # def version(self):
+    #     if self._version is None:
+    #         v = self.opts.get("version", None)
+    #         if not v:
+    #             v = self.get_model_version(self.results_dir_root)
+    #         self._version = v
+    #     return self._version
 
-    def get_model_version(self, path):
-        version = 1
+    def get_last_version(self):
+        version = 0
+        path = self.results_dir_root
         if path.exists():
             for item in path.iterdir():
                 if item.is_dir():
                     try:
                         res = int(item.name)
                         if res >= version:
-                            version = res + 1
+                            version = res
                     except ValueError:
                         continue
         return version
