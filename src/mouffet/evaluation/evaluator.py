@@ -112,35 +112,29 @@ class Evaluator(ModelHandler):
                 / ("_".join(filter(None, [prefix, eval_id, "tag_repartition.pdf"],))),
             )
 
-    def expand_scenarios(self, option_type):
-        elements = self.opts[option_type]
-        opts = []
+    def expand_scenarios(self, element_type):
+        elements = self.opts[element_type]
+        default = self.opts.get(element_type + "_options", {})
+        scenarios = []
         for element in elements:
             if "scenarios" in element:
                 clean = dict(element)
                 clean.pop("scenarios")
                 for opts in common_utils.expand_options_dict(element["scenarios"]):
-                    res = dict(clean)
+                    res = common_utils.deep_dict_update(clean, default, copy=True)
                     res = common_utils.deep_dict_update(res, opts, copy=True)
-                    opts.append(res)
+                    scenarios.append(res)
             else:
-                opts.append(dict(element))
-        return opts
-
-    def load_databases_options(self):
-        return self.expand_scenarios("databases")
-
-    def load_model_options(self):
-        return self.expand_scenarios("models")
-
-    def load_detector_options(self):
-        return self.expand_scenarios("detectors")
+                scenarios.append(
+                    common_utils.deep_dict_update(element, default, copy=True)
+                )
+        return scenarios
 
     def load_scenarios(self):
-        db_opts = self.load_databases_options()
-        model_opts = self.load_model_options()
-        detector_opts = self.load_detector_options()
-        res = product(db_opts, model_opts, detector_opts)
+        db_scenarios = self.expand_scenarios("databases")
+        model_scenarios = self.expand_scenarios("models")
+        detector_scenarios = self.expand_scenarios("detectors")
+        res = product(db_scenarios, model_scenarios, detector_scenarios)
         return list(res)
 
     def load_tags(self, database, types):
