@@ -155,7 +155,7 @@ class Evaluator(ModelHandler):
         model_stats = {}
         if database and database.has_type("test"):
             self.data_handler.check_dataset(database, ["test"])
-            preds = self.get_predictions(model_opts, model_opts.version, database)
+            preds = self.get_predictions(model_opts, database)
             preds = preds.rename(columns={"recording_path": "recording_id"})
             stats_infos = {
                 "database": database.name,
