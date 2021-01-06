@@ -76,8 +76,6 @@ class Trainer(ModelHandler):
                     for db_type in db_types
                 ]
                 print(scenario)
-                # self.model.opts = ModelOptions(scenario)
-                self.model.opts.opts["name"] = self.model.NAME
                 self.model.save_params()
                 self.model.train(*data)
             except Exception:
