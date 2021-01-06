@@ -18,7 +18,6 @@ class DLModel(ABC):
     def __init__(self, opts=None):
         """Create the layers of the neural network, with the same options we used in training"""
         self.model = None
-        self._results_dir = None
         self._opts = None
         if opts:
             self.opts = opts
