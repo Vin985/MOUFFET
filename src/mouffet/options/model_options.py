@@ -8,9 +8,11 @@ class ModelOptions(Options):
 
     DEFAULT_VALUES = {
         "id": "",
-        "id_prefixes": {},
+        "id_prefixes": {"default": ""},
         "intermediate_save_dir": "intermediate",
     }
+
+    DICT_PATH_SEPARATOR = "--"
 
     def __init__(self, opts):
         super().__init__(opts)
@@ -88,7 +90,14 @@ class ModelOptions(Options):
             if prefixes:
                 prefix = prefixes.get(key, prefixes.get("default", ""))
                 mid += str(prefix)
-            mid += str(common_utils.get_dict_path(self.opts, key, key))
+            if self.DICT_PATH_SEPARATOR in key:
+                mid += str(
+                    common_utils.get_dict_path(
+                        self.opts, key, key, sep=self.DICT_PATH_SEPARATOR
+                    )
+                )
+            else:
+                mid += str(getattr(self.opts, key))
             res[key] = mid
 
         mid = model_id.format(**res)
