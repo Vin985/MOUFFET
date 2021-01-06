@@ -22,16 +22,16 @@ class Evaluator(ModelHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def get_model(self, model_opts, version):
+    def get_model(self, model_opts):
+        version = model_opts.load_version
         old_opts = file_utils.load_config(
-            Path(self.get_option("weights_dir", model_opts))
+            Path(self.get_option("model_dir", model_opts))
             / model_opts["name"]
             / str(version)
             / "network_opts.yaml"
         )
-        if "options" in model_opts:
-            common_utils.deep_dict_update(old_opts, model_opts["options"])
-        model = self.get_model_instance(model_opts, old_opts, version)
+        common_utils.deep_dict_update(model_opts.opts, old_opts)
+        model = self.get_model_instance(model_opts)
         model.load_weights()
         return model
 
@@ -48,17 +48,24 @@ class Evaluator(ModelHandler):
             )
         return Path(preds_dir)
 
-    def get_predictions_file_name(self, model_opts, version, database):
-        return database.name + "_" + model_opts.model_id + ".feather"
+    def get_predictions_file_name(self, model_opts, database):
+        return (
+            database.name
+            + "_"
+            + model_opts.model_id
+            + "_v"
+            + str(model_opts.load_version)
+            + ".feather"
+        )
 
-    def get_predictions(self, model_opts, version, database):
+    def get_predictions(self, model_opts, database):
         preds_dir = self.get_predictions_dir(model_opts, database)
-        file_name = self.get_predictions_file_name(model_opts, version, database)
+        file_name = self.get_predictions_file_name(model_opts, database)
         pred_file = preds_dir / file_name
         if not model_opts.get("reclassify", False) and pred_file.exists():
             predictions = feather.read_dataframe(pred_file)
         else:
-            model = self.get_model(model_opts, version)
+            model = self.get_model(model_opts)
             predictions = self.classify_test_data(model, database)
             pred_file.parent.mkdir(parents=True, exist_ok=True)
             feather.write_dataframe(predictions, pred_file)
