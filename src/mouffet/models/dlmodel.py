@@ -30,8 +30,8 @@ class DLModel(ABC):
     @opts.setter
     def opts(self, opts):
         self._opts = opts
+        self._opts.opts["name"] = self.NAME
         self.model = self.create_net()
-        # self.results_dir_root = Path(self.opts["model_dir"]) / self.NAME
 
     @abstractmethod
     def create_net(self):
