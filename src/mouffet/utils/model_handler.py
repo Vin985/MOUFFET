@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from importlib import import_module
 
+import pydoc
+
 from ..data.data_handler import DataHandler
 from ..options.model_options import ModelOptions
 from ..utils import file as file_utils
@@ -55,21 +57,22 @@ class ModelHandler(ABC):
         if not data_opts_path:
             raise Exception("A path to the data configuration file must be provided")
         data_opts = file_utils.load_config(data_opts_path)
-        if dh_class:
+        if dh_class and issubclass(dh_class, DataHandler):
             dh = dh_class(data_opts, split_funcs=split_funcs)
         else:
-            dh = DataHandler(data_opts, split_funcs=split_funcs)
+            raise Exception("A subclass of DataHandler must be provided")
         return dh
 
-    def get_model_instance(self, model, model_opts, version=None):
-        if not isinstance(model, ModelOptions) and not isinstance(model, dict):
+    def get_model_instance(self, model_opts):
+        if not isinstance(model_opts, ModelOptions):
             raise ValueError(
                 "Argument 'model' should be an instance of dlbd.options.ModelOptions or a dict"
             )
 
-        pkg = import_module(model["package"])
-        cls = getattr(pkg, model["name"])
-        return cls(model_opts, version=version)
+        # pkg = import_module(model["package"])
+        # cls = getattr(pkg, model["name"])
+        cls = pydoc.locate(model_opts["class"])
+        return cls(model_opts)
 
     def get_option(self, name, group, default=""):
         return group.get(name, self.opts.get(name, default))
