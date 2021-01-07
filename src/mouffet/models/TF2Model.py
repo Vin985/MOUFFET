@@ -140,7 +140,9 @@ class TF2Model(DLModel):
 
     def create_writers(self):
         # current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        log_dir = Path(self.opts.logs["log_dir"]) / self.opts.name
+        log_dir = Path(self.opts.logs["log_dir"]) / (
+            self.opts.model_id + "_v" + str(self.opts.save_version)
+        )
 
         # TODO: externalize logging directory
         train_log_dir = log_dir / "train"
