@@ -125,7 +125,7 @@ class TF2Model(DLModel):
             )
             print(
                 template.format(
-                    epoch + 1,
+                    epoch,
                     self.metrics["train_loss"].result(),
                     self.metrics["train_accuracy"].result() * 100,
                     self.metrics["validation_loss"].result(),
