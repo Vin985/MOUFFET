@@ -72,7 +72,9 @@ class Trainer(ModelHandler):
                 databases = self.get_scenario_databases_options(scenario)
                 self.data_handler.check_datasets(databases=databases, db_types=db_types)
                 data = [
-                    self.model.prepare_data(self.data_handler.load_datasets(db_type))
+                    self.model.prepare_data(
+                        self.data_handler.load_datasets(db_type, databases=databases)
+                    )
                     for db_type in db_types
                 ]
                 print(scenario)
