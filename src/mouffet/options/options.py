@@ -1,4 +1,5 @@
 from pathlib import Path
+import traceback
 
 
 class Options:
@@ -19,8 +20,8 @@ class Options:
         value = self.opts.get(name, self.DEFAULT_VALUES.get(name, None))
         if value is None:
             raise ValueError(
-                "No option {} is present in this {} object. Please check the config file.".format(
-                    name, self.__class__
+                "No option {} is present in this {} object. Please check the config file. {}".format(
+                    name, self.__class__, traceback.format_exc()
                 )
             )
         if isinstance(value, str) and (name.endswith("_dir") or name.endswith("_path")):
