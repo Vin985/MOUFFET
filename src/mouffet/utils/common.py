@@ -1,19 +1,22 @@
 import collections.abc
+from copy import deepcopy
 from itertools import product
 
 
-def deep_dict_update(original, update, copy=False):
+def deep_dict_update(original, update, copy=False, replace=True):
     """Recursively update a dict.
 
     Subdict's won't be overwritten but also updated.
     """
-    if copy:
-        original = dict(original)
     if not isinstance(original, collections.Mapping):
         if copy:
-            update = dict(update)
+            update = deepcopy(update)
         return update
+    if copy:
+        original = deepcopy(original)
     for key, value in update.items():
+        if key in original and not replace:
+            continue
         if isinstance(value, collections.Mapping):
             original[key] = deep_dict_update(original.get(key, {}), value, copy)
         else:
