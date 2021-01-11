@@ -105,7 +105,7 @@ class TF2Model(DLModel):
         self.create_writers()
 
         # tf.profiler.experimental.start(
-        #     str(Path(self.opts["logs"]["log_dir"]) / self.model_name)
+        #     str(Path(self.opts["logs"]["log_dir"]) / self.opts.model_id)
         # )
 
         for epoch in range(from_epoch + 1, self.opts["model"]["max_epochs"] + 1):
@@ -155,9 +155,23 @@ class TF2Model(DLModel):
 
     def run_step(self, step_type, data, step, sampler):
         # i = 0
+
+        # dataset = tf.data.Dataset.from_generator(
+        #     sampler(self.get_raw_data(data), self.get_ground_truth(data)),
+        #     output_types=(tf.float32, tf.int32),
+        #     output_shapes=(tf.TensorShape([]), tf.TensorShape([128])),
+        # output_signature=(
+        #     tf.TensorSpec(shape=(), dtype=tf.float32),
+        #     tf.RaggedTensorSpec(shape=(128, None), dtype=tf.int32),
+        # ),
+        # )
+
         for data, labels in tqdm(
             sampler(self.get_raw_data(data), self.get_ground_truth(data))
         ):
+
+            # print(data)
+
             # if i == 10:
             #     break
             # i += 1
@@ -182,7 +196,7 @@ class TF2Model(DLModel):
                     from_epoch, version=self.opts["model"].get("from_version", -1)
                 )
             else:
-            path = str(self.opts.results_load_dir / self.opts.model_id)
+                path = str(self.opts.results_load_dir / self.opts.model_id)
         self.model.load_weights(path)
 
     @abstractmethod
