@@ -29,9 +29,10 @@ class Evaluator(ModelHandler):
             / str(version)
             / "network_opts.yaml"
         )
-        common_utils.deep_dict_update(model_opts.opts, old_opts)
+        old_opts["data_config"] = self.opts["data_config"]
+        common_utils.deep_dict_update(model_opts.opts, old_opts, replace=False)
         model = self.get_model_instance(model_opts)
-        model.load_weights()
+        model.load_weights(from_epoch=model_opts.get("from_epoch", 0))
         return model
 
     @abstractmethod
