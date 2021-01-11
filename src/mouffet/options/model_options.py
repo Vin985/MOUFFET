@@ -97,7 +97,7 @@ class ModelOptions(Options):
                     )
                 )
             else:
-                mid += str(getattr(self.opts, key))
+                mid += str(self.opts.get(key, key))
             res[key] = mid
 
         mid = model_id.format(**res)
