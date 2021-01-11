@@ -98,11 +98,7 @@ class TF2Model(DLModel):
 
         from_epoch = self.opts["model"].get("from_epoch", 0)
         if from_epoch:
-            self.load_weights(
-                self.opts.get_intermediate_path(
-                    from_epoch, version=self.opts["model"].get("from_version", -1)
-                )
-            )
+            self.load_weights(from_epoch=from_epoch)
         epoch_save_step = self.opts["model"].get("epoch_save_step", None)
 
         # * Create logging writers
@@ -179,8 +175,13 @@ class TF2Model(DLModel):
             path = str(self.opts.results_save_dir / self.opts.model_id)
         self.model.save_weights(path)
 
-    def load_weights(self, path=None):
+    def load_weights(self, path=None, from_epoch=None):
         if not path:
+            if from_epoch:
+                path = self.opts.get_intermediate_path(
+                    from_epoch, version=self.opts["model"].get("from_version", -1)
+                )
+            else:
             path = str(self.opts.results_load_dir / self.opts.model_id)
         self.model.load_weights(path)
 

@@ -51,7 +51,7 @@ class DLModel(ABC):
         )
 
     @abstractmethod
-    def load_weights(self, path=None):
+    def load_weights(self, path=None, from_epoch=None):
         raise NotImplementedError(
             "load_weights function not implemented for this class"
         )
