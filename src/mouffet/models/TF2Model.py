@@ -191,12 +191,13 @@ class TF2Model(DLModel):
 
     def load_weights(self, path=None, from_epoch=None):
         if not path:
-            if from_epoch:
-                path = self.opts.get_intermediate_path(
-                    from_epoch, version=self.opts["model"].get("from_version", -1)
-                )
-            else:
-                path = str(self.opts.results_load_dir / self.opts.model_id)
+            path = self.opts.get_weights_path(from_epoch)
+            # if from_epoch:
+            #     path = self.opts.get_intermediate_path(
+            #         from_epoch, version=self.opts["model"].get("from_version", -1)
+            #     )
+            # else:
+            #     path = str(self.opts.results_load_dir / self.opts.model_id)
         self.model.load_weights(path)
 
     @abstractmethod
