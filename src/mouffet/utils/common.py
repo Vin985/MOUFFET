@@ -89,4 +89,3 @@ def get_dict_path(dict_obj, path, default=None, sep="--"):
             return default
 
     return value
-
