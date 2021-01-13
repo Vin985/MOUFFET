@@ -3,11 +3,12 @@ from copy import deepcopy
 from itertools import product
 
 
-def deep_dict_update(original, update, copy=False, replace=True):
+def deep_dict_update(original, update, copy=False, replace=True, except_keys=None):
     """Recursively update a dict.
 
     Subdict's won't be overwritten but also updated.
     """
+    except_keys = except_keys or []
     if not isinstance(original, collections.Mapping):
         if copy:
             update = deepcopy(update)
@@ -15,7 +16,9 @@ def deep_dict_update(original, update, copy=False, replace=True):
     if copy:
         original = deepcopy(original)
     for key, value in update.items():
-        if key in original and not replace:
+        if key in original and (
+            (not replace and not key in except_keys) or (replace and key in except_keys)
+        ):
             continue
         if isinstance(value, collections.Mapping):
             original[key] = deep_dict_update(original.get(key, {}), value, copy)
