@@ -30,9 +30,22 @@ class Evaluator(ModelHandler):
             / "network_opts.yaml"
         )
         old_opts["data_config"] = self.opts["data_config"]
-        common_utils.deep_dict_update(model_opts.opts, old_opts, replace=False)
-        model = self.get_model_instance(model_opts)
-        model.load_weights(from_epoch=model_opts.get("from_epoch", 0))
+        opts = ModelOptions(old_opts)
+
+        # * Problem: to load the model, we need to use the old model id
+        # * Or we can define a new one in the config option to save the results which leads in
+        # * in inconsistencies.
+        # * Solution: use scenario id instead and prevent from overriding model id
+
+        # weights_path = opts.get_weights_path(
+        #     epoch=model_opts.get("from_epoch", 0),
+        #     version=model_opts.get("from_version", -1),
+        # )
+        common_utils.deep_dict_update(
+            opts.opts, model_opts.opts, except_keys=["id", "id_prefixes"]
+        )
+        model = self.get_model_instance(opts)
+        model.load_weights(from_epoch=opts["model"].get("from_epoch", 0))
         return model
 
     @abstractmethod
@@ -121,7 +134,9 @@ class Evaluator(ModelHandler):
                 clean = dict(element)
                 clean.pop("scenarios")
                 for opts in common_utils.expand_options_dict(element["scenarios"]):
+                    # * Add default options to scenario
                     res = common_utils.deep_dict_update(clean, default, copy=True)
+                    # * Add expanded options
                     res = common_utils.deep_dict_update(res, opts, copy=True)
                     scenarios.append(res)
             else:
