@@ -17,7 +17,7 @@ class ModelOptions(Options):
     def __init__(self, opts):
         super().__init__(opts)
         self._model_id = ""
-        self.previous_version = self.get_last_version()
+        self._previous_version = None
 
     @property
     def results_dir_root(self):
@@ -35,6 +35,12 @@ class ModelOptions(Options):
         return self.opts.get("version", self.previous_version + int(save))
 
     @property
+    def previous_version(self):
+        if self._previous_version is None:
+            self._previous_version = self.get_last_version()
+        return self._previous_version
+
+    @property
     def load_version(self):
         return self.version(save=False)
 
@@ -45,11 +51,24 @@ class ModelOptions(Options):
     def get_results_dir(self, save=True):
         return self.results_dir_root / str(self.version(save))
 
+    def get_weights_path(self, epoch=None, version=None, as_string=True):
+        if epoch:
+            if version is None:
+                version = self.model.get("from_version", -1)
+            path = self.get_intermediate_path(
+                epoch, version=version, as_string=as_string,
+            )
+        else:
+            path = self.results_load_dir / self.model_id
+        if as_string:
+            return str(path)
+        return path
+
     def get_intermediate_path(self, epoch, version=None, as_string=True):
-        """Get the path where intermediate results for a specific epoch are saved
+        """Get the path where intermediate weights for a specific epoch are saved
 
         Args:
-            epoch (int): The epoch where the results are saved
+            epoch (int): The epoch for which the weights are saved
             version (int, optional): An optional version number to provide. If None,
             use current version number (for saving). If provided and positive, use that
             version number. If provided and negative, use the previous version number.
@@ -113,7 +132,7 @@ class ModelOptions(Options):
     #     return self._version
 
     def get_last_version(self):
-        version = 0
+        version = 1
         path = self.results_dir_root
         if path.exists():
             for item in path.iterdir():
