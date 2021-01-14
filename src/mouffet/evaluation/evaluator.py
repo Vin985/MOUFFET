@@ -22,6 +22,18 @@ class Evaluator(ModelHandler):
         super().__init__(*args, **kwargs)
 
     def get_model(self, model_opts):
+        """Load a model from the options provided by model_opts. Note: the options
+        saved during training will be loaded and overriden by the relevant options from
+        model_opts (especially the paths). One exception is the "id" and "id_prefixes" options
+        as the one from the old options will always be used to prevent any conflict if the user
+        decides to define a new id for saving the evaluation results.
+
+        Args:
+            model_opts (mouffet.options.ModelOptions): The model options for the current scenario
+
+        Returns:
+            mouffet.model.DLModel: the loaded model
+        """
         version = model_opts.load_version
         old_opts = file_utils.load_config(
             Path(self.get_option("model_dir", model_opts))
@@ -30,20 +42,12 @@ class Evaluator(ModelHandler):
             / "network_opts.yaml"
         )
         old_opts["data_config"] = self.opts["data_config"]
+        # * To load the model, we use the old opts updated by the scenario, except for the id
         opts = ModelOptions(old_opts)
-
-        # * Problem: to load the model, we need to use the old model id
-        # * Or we can define a new one in the config option to save the results which leads in
-        # * in inconsistencies.
-        # * Solution: use scenario id instead and prevent from overriding model id
-
-        # weights_path = opts.get_weights_path(
-        #     epoch=model_opts.get("from_epoch", 0),
-        #     version=model_opts.get("from_version", -1),
-        # )
         common_utils.deep_dict_update(
             opts.opts, model_opts.opts, except_keys=["id", "id_prefixes"]
         )
+
         model = self.get_model_instance(opts)
         model.load_weights(from_epoch=opts["model"].get("from_epoch", 0))
         return model
@@ -130,19 +134,17 @@ class Evaluator(ModelHandler):
         default = self.opts.get(element_type + "_options", {})
         scenarios = []
         for element in elements:
-            if "scenarios" in element:
-                clean = dict(element)
-                clean.pop("scenarios")
-                for opts in common_utils.expand_options_dict(element["scenarios"]):
-                    # * Add default options to scenario
-                    res = common_utils.deep_dict_update(clean, default, copy=True)
+            tmp = common_utils.deep_dict_update(default, element, copy=True)
+            if "scenarios" in tmp:
+                scenario = tmp.pop("scenarios")
+                for opts in common_utils.expand_options_dict(scenario):
+                    # # * Add default options to scenario
+                    # res = common_utils.deep_dict_update(clean, default, copy=True)
                     # * Add expanded options
-                    res = common_utils.deep_dict_update(res, opts, copy=True)
+                    res = common_utils.deep_dict_update(tmp, opts, copy=True)
                     scenarios.append(res)
             else:
-                scenarios.append(
-                    common_utils.deep_dict_update(element, default, copy=True)
-                )
+                scenarios.append(tmp)
         return scenarios
 
     def load_scenarios(self):
