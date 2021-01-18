@@ -30,11 +30,9 @@ class Trainer(ModelHandler):
         scenarios = []
         if "scenarios" in self.opts:
             clean = dict(self.opts)
-            clean.pop("scenarios")
-            for scenario in self.opts["scenarios"]:
-                for opts in common_utils.expand_options_dict(
-                    scenario  # , exclude_expand=["databases_options"]
-                ):
+            scens = clean.pop("scenarios")
+            for scenario in scens:
+                for opts in common_utils.expand_options_dict(scenario):
                     res = dict(clean)
                     res = common_utils.deep_dict_update(res, opts, copy=True)
                     scenarios.append(res)
