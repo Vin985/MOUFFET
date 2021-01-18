@@ -79,7 +79,8 @@ class DataHandler(ABC):
         return None
 
     def get_class_subfolder_path(self, database):
-        """Default implementation for a class subfolder
+        """Function called if data is to be saved using a class subfolder.
+        By default uses the value of the "class_type" option.
 
         Args:
             database (dict): The dictionary holding all option for the specific database.
@@ -236,8 +237,28 @@ class DataHandler(ABC):
         )
         return classes
 
+    @staticmethod
+    @abstractmethod
+    def load_raw_data(file_path, opts, *args, **kwargs):
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def load_tags(tags_dir, opts, *args, **kwargs):
+        pass
+
     @abstractmethod
     def load_file_data(self, file_path, tags_dir, opts):
+        """Load data for the file at file_path. This usually include loading the raw data
+        and the tags associated with the file. This method usually include a call to
+        load_raw_data() and load_tags(). This method should then fill the tmp_db_data attribute
+        to save the intermediate results
+
+        Args:
+            file_path ([type]): [description]
+            tags_dir ([type]): [description]
+            opts ([type]): [description]
+        """
         data, tags = [], []
         return data, tags
 
