@@ -1,11 +1,33 @@
 Core concepts
 =============
 
+
 Databases
 ----------
 
+At the core of any model creation is the data to be analyzed. When training a model, we define three
+kind of data:
+    - training data
+    - validation data
+    - test data
+
+Mouffet allows the creation of data that fit into one of these categories and enforces that the
+separation between all data is respected.
+
+Databases are described in a yaml file which is described in further details here.
+
+
 Models
 ------
+
+versions
+id
+
+Evaluators
+----------
+
+    Detectors
+    ---------
 
 Scenarios
 ---------

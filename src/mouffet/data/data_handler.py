@@ -43,6 +43,13 @@ class DataHandler(ABC):
         self.databases = self.load_databases()
 
     def load_databases(self):
+        """Loads all databases defined in the 'databases' option of the configuration file.
+
+        Returns:
+            dict: A dict where keys are the names of the databases and values are instances
+            of the DataHandler.OPTIONS_CLASS that must be a subclass of
+            mouffet.options.DatabaseOptions
+        """
         global_opts = dict(self.opts)
         databases = global_opts.pop("databases")
         databases = {
@@ -54,6 +61,14 @@ class DataHandler(ABC):
         return databases
 
     def duplicate_database(self, database):
+        """Duplicates the provided database
+
+        Args:
+            database (instance of DataHandler.OPTIONS_CLASS): The database to duplicate
+
+        Returns:
+            mouffet.options.DatabaseOptions: The duplicated database
+        """
         return self.OPTIONS_CLASS(
             common_utils.deep_dict_update(
                 self.databases[database["name"]].opts, database, copy=True
@@ -62,6 +77,24 @@ class DataHandler(ABC):
         )
 
     def update_database(self, new_opts=None, name="", copy=True):
+        """Updates a database with the options contained in new_opts.
+        If 'name' is not provided, this function tries to get the name of the database to update
+        from the 'name' key in new_opts. 
+
+        Args:
+            new_opts (dict, optional): A dictionary containing the new value to update.
+            Defaults to None.
+            name (str, optional): The name of the database to update. Defaults to "".
+            copy (bool, optional): If True, returns a copy of the original database.
+            Defaults to True.
+
+        Raises:
+            AttributeError: Thrown when no database 'name' has been found.
+
+        Returns:
+            DataHandler.OPTIONS_CLASS: An options object with the values of the original database
+            with updated values. Returns None if the database name was not found.
+        """
         new_opts = new_opts or {}
         name = name or new_opts.get("name", "")
         if not name:
