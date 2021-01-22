@@ -21,5 +21,9 @@ class Detector(ABC):
         pass
 
     @abstractmethod
+    def get_events(self, predictions, options, *args, **kwargs):
+        pass
+
+    @abstractmethod
     def evaluate(self, predictions, tags, options):
         pass
