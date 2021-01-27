@@ -8,9 +8,10 @@ from pathlib import Path
 import feather
 import pandas as pd
 
+from ..options.database_options import DatabaseOptions
 from ..utils import common as common_utils
 from ..utils.file import ensure_path_exists, get_full_path, list_files
-from ..options.database_options import DatabaseOptions
+from .data_structure import DataStructure
 
 
 class DataHandler(ABC):
@@ -34,7 +35,7 @@ class DataHandler(ABC):
 
     OPTIONS_CLASS = DatabaseOptions
 
-    DATA_STRUCTURE = {"data": [], "tags": []}
+    DATA_STRUCTURE = DataStructure()
 
     def __init__(self, opts, split_funcs=None):
         self.opts = opts
@@ -159,7 +160,7 @@ class DataHandler(ABC):
                     )
         return res
 
-    def get_save_dest_paths(self, dest_dir, db_type, subfolders):
+    def get_save_dest_paths(self, dest_dir, db_type, database, subfolders):
         """Create
 
         Args:
@@ -171,9 +172,14 @@ class DataHandler(ABC):
             [type]: [description]
         """
         res = {}
-        for key in self.DATA_STRUCTURE:
-            ext = "feather" if key.endswith("_df") else "pkl"
-            res[key] = dest_dir / subfolders / (db_type + "_" + key + "." + ext)
+        for key in self.DATA_STRUCTURE.keys():
+            res[key] = (
+                dest_dir
+                / subfolders
+                / self.DATA_STRUCTURE.get_file_name(
+                    key, db_type=db_type, database=database
+                )
+            )
         return res
 
     def get_database_paths(self, database):
@@ -204,7 +210,7 @@ class DataHandler(ABC):
                 db_type + "_file_list_path", dest_dir / (db_type + "_file_list.csv")
             )
             paths["save_dests"][db_type] = self.get_save_dest_paths(
-                dest_dir, db_type, subfolders
+                dest_dir, db_type, database, subfolders
             )
         return paths
 
@@ -320,7 +326,7 @@ class DataHandler(ABC):
         return {}
 
     def generate_dataset(self, database, paths, file_list, db_type, overwrite):
-        self.tmp_db_data = deepcopy(self.DATA_STRUCTURE)
+        self.tmp_db_data = self.DATA_STRUCTURE.copy()
         print("Generating dataset: ", database["name"])
 
         data_opts = self.load_data_options(database)
@@ -348,7 +354,7 @@ class DataHandler(ABC):
         self.tmp_db_data = None
 
     def check_dataset_exists(self, paths, db_type):
-        for key in self.DATA_STRUCTURE:
+        for key in self.DATA_STRUCTURE.keys():
             if not paths["save_dests"][db_type][key].exists():
                 return False
         return True
@@ -379,7 +385,7 @@ class DataHandler(ABC):
             return pickle.load(open(file_name, "rb"))
 
     def merge_datasets(self, datasets):
-        merged = deepcopy(self.DATA_STRUCTURE)
+        merged = self.DATA_STRUCTURE.copy()
         for dataset in datasets.values():
             for key in merged:
                 if isinstance(dataset[key], list):
@@ -394,7 +400,7 @@ class DataHandler(ABC):
             file_types = self.DATA_STRUCTURE.keys()
         else:
             # * Make sure we only have valid keys
-            file_types = [ft for ft in file_types if ft in self.DATA_STRUCTURE]
+            file_types = [ft for ft in file_types if ft in self.DATA_STRUCTURE.keys()]
         return file_types
 
     def load_dataset(self, database, db_type, load_opts=None):
@@ -402,7 +408,7 @@ class DataHandler(ABC):
         file_types = self.get_file_types(load_opts)
         # * Get paths
         paths = self.get_database_paths(database)
-        res = deepcopy(self.DATA_STRUCTURE)
+        res = self.DATA_STRUCTURE.copy()
 
         for key in file_types:
             path = paths["save_dests"][db_type][key]
