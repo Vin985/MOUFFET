@@ -2,7 +2,6 @@ import csv
 import pickle
 import traceback
 from abc import ABC, abstractmethod
-from copy import deepcopy
 from pathlib import Path
 
 import feather
@@ -11,6 +10,7 @@ import pandas as pd
 from ..options.database_options import DatabaseOptions
 from ..utils import common as common_utils
 from ..utils.file import ensure_path_exists, get_full_path, list_files
+from ..utils.split import random_split
 from .data_structure import DataStructure
 
 
@@ -37,9 +37,10 @@ class DataHandler(ABC):
 
     DATA_STRUCTURE = DataStructure()
 
-    def __init__(self, opts, split_funcs=None):
+    SPLIT_FUNCS = {}
+
+    def __init__(self, opts):
         self.opts = opts
-        self.split_funcs = split_funcs
         self.tmp_db_data = None
         self.databases = self.load_databases()
 
@@ -244,6 +245,35 @@ class DataHandler(ABC):
             )
         return res
 
+    def split(self, data_path, database):
+        if not data_path.exists():
+            raise ValueError(
+                "'audio_dir' option must be provided to split into test, training and"
+                + "validation subsets"
+            )
+        split_opts = database.get("split", None)
+        if not split_opts:
+            raise ValueError("Split option must be provided for splitting")
+        split_func = self.SPLIT_FUNCS.get(database["name"], random_split)
+        split_props = []
+        # * Make test split optional
+        test_split = split_opts.get("test", 0)
+        if test_split:
+            split_props.append(test_split)
+        val_split = split_opts.get("validation", 0.2)
+        split_props.append(val_split)
+        splits = split_func(data_path, split_props, [".wav"])
+        res = {}
+        idx = 0
+        if test_split:
+            res["test"] = splits[idx]
+            idx += 1
+        res["validation"] = splits[idx]
+        res["training"] = splits[idx + 1]
+
+        print([(k + " " + str(len(v))) for k, v in res.items()])
+        return res
+
     def check_file_lists(self, database, paths):
         file_lists = {}
         msg = "Checking file lists for database {0}... ".format(database["name"])
@@ -253,8 +283,9 @@ class DataHandler(ABC):
             print(msg + "Generating file lists...")
             file_lists = {}
             # * Check if we have a dedicated function to split the original data
-            if self.split_funcs and database["name"] in self.split_funcs:
-                file_lists = self.split_funcs[database["name"]](paths, self, database)
+            split_opts = database.get("split", None)
+            if split_opts:
+                file_lists = self.split(paths["data"]["training"], database)
             else:
                 file_lists = self.get_data_file_lists(paths, database)
             # * Save results
