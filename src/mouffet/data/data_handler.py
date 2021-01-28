@@ -242,7 +242,7 @@ class DataHandler(ABC):
         data_path = paths["data"]["training"]
         if not data_path.exists():
             raise ValueError(
-                "'audio_dir' option must be provided to split into test, training and"
+                "'data_dir' option must be provided to split into test, training and"
                 + "validation subsets"
             )
         split_opts = database.get("split", None)
