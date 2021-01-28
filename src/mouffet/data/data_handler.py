@@ -447,7 +447,7 @@ class DataHandler(ABC):
         file_types = self.get_file_types(load_opts)
         # * Get paths
         paths = self.get_database_paths(database)
-        res = self.DATA_STRUCTURE.copy()
+        res = self.DATA_STRUCTURE.get_copy()
 
         for key in file_types:
             path = paths["save_dests"][db_type][key]
