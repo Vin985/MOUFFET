@@ -24,6 +24,10 @@ class DataHandler(ABC):
 
     DATA_STRUCTURE = DataStructure()
 
+    DB_TYPE_TRAINING = "training"
+    DB_TYPE_VALIDATION = "validation"
+    DB_TYPE_TEST = "test"
+
     SPLIT_FUNCS = {}
 
     def __init__(self, opts):
@@ -349,7 +353,8 @@ class DataHandler(ABC):
         return {}
 
     def generate_dataset(self, database, paths, file_list, db_type, overwrite):
-        self.tmp_db_data = self.DATA_STRUCTURE.copy()
+        self.tmp_db_data = self.DATA_STRUCTURE.get_copy()
+        print(self.tmp_db_data)
         print("Generating {} dataset for database {}".format(db_type, database["name"]))
 
         data_opts = self.load_data_options(database)
@@ -378,6 +383,11 @@ class DataHandler(ABC):
                 self.tmp_db_data = None
         self.finalize_dataset()
         # Save all data
+        print(
+            len(self.tmp_db_data["infos"]),
+            len(self.tmp_db_data["spectrograms"]),
+            len(self.tmp_db_data["tags_linear_presence"]),
+        )
         self.save_dataset(paths, db_type)
         self.tmp_db_data = None
 
@@ -414,7 +424,7 @@ class DataHandler(ABC):
             return pickle.load(open(file_name, "rb"))
 
     def merge_datasets(self, datasets):
-        merged = self.DATA_STRUCTURE.copy()
+        merged = self.DATA_STRUCTURE.get_copy()
         for dataset in datasets.values():
             for key in merged:
                 if isinstance(dataset[key], list):
