@@ -66,7 +66,7 @@ class Trainer(ModelHandler):
         ]
         for scenario in self.scenarios:
             try:
-                self.model = self.model_class(ModelOptions(scenario))
+                print("training scenario with options: ", scenario)
                 databases = self.get_scenario_databases_options(scenario)
                 self.data_handler.check_datasets(databases=databases, db_types=db_types)
                 data = [
@@ -75,7 +75,7 @@ class Trainer(ModelHandler):
                     )
                     for db_type in db_types
                 ]
-                print(scenario)
+                self.model = self.model_class(ModelOptions(scenario))
                 self.model.save_params()
                 self.model.train(*data)
             except Exception:
