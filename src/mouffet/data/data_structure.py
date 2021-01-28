@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import mouffet.utils.common as common_utils
 
 
@@ -27,9 +29,9 @@ class DataStructure:
     def keys(self):
         return self.structure.keys()
 
-    def copy(self):
+    def get_copy(self):
         return {
-            key: self.structure[key].get("data_type", [])
+            key: deepcopy(self.structure[key].get("data_type", []))
             for key in self.structure.keys()
         }
 
