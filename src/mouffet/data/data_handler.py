@@ -20,19 +20,6 @@ class DataHandler(ABC):
     this should be subclassed
     """
 
-    DB_TYPE_TRAINING = "training"
-    DB_TYPE_VALIDATION = "validation"
-    DB_TYPE_TEST = "test"
-
-    DB_TYPES = [DB_TYPE_TRAINING, DB_TYPE_VALIDATION, DB_TYPE_TEST]
-
-    DEFAULT_OPTIONS = {
-        "class_type": "",
-        "data_extensions": [""],
-        "classes_file": "classes.csv",
-        "tags_suffix": "-sceneRect.csv",
-    }
-
     OPTIONS_CLASS = DatabaseOptions
 
     DATA_STRUCTURE = DataStructure()
@@ -197,6 +184,7 @@ class DataHandler(ABC):
         paths["save_dests"] = {}
 
         for db_type in database.db_types:
+
             db_type_dir = get_full_path(database[db_type + "_dir"], root_dir)
             paths[db_type + "_dir"] = db_type_dir
             paths["data"][db_type] = get_full_path(
@@ -237,15 +225,17 @@ class DataHandler(ABC):
                 writer.writerow([name])
             print("Saved file list:", str(file_list_path))
 
-    def get_data_file_lists(self, paths, database):
+    def get_data_file_lists(self, paths, database, db_types=None):
         res = {}
-        for db_type in database.db_types:
+        db_types = db_types or database.db_types
+        for db_type in db_types:
             res[db_type] = list_files(
                 paths["data"][db_type], database.data_extensions, database.recursive
             )
         return res
 
-    def split(self, data_path, database):
+    def split(self, paths, database):
+        data_path = paths["data"]["training"]
         if not data_path.exists():
             raise ValueError(
                 "'audio_dir' option must be provided to split into test, training and"
@@ -268,6 +258,8 @@ class DataHandler(ABC):
         if test_split:
             res["test"] = splits[idx]
             idx += 1
+        elif "test" in database.db_types:
+            res.update(self.get_data_file_lists(paths, database, db_types=["test"]))
         res["validation"] = splits[idx]
         res["training"] = splits[idx + 1]
 
@@ -285,7 +277,7 @@ class DataHandler(ABC):
             # * Check if we have a dedicated function to split the original data
             split_opts = database.get("split", None)
             if split_opts:
-                file_lists = self.split(paths["data"]["training"], database)
+                file_lists = self.split(paths, database)
             else:
                 file_lists = self.get_data_file_lists(paths, database)
             # * Save results
@@ -358,14 +350,19 @@ class DataHandler(ABC):
 
     def generate_dataset(self, database, paths, file_list, db_type, overwrite):
         self.tmp_db_data = self.DATA_STRUCTURE.copy()
-        print("Generating dataset: ", database["name"])
+        print("Generating {} dataset for database {}".format(db_type, database["name"]))
 
         data_opts = self.load_data_options(database)
 
         for file_path in file_list:
             try:
+                split = database.get("split", {})
+                if split and db_type in split:
+                    tags_dir = paths["tags"]["training"]
+                else:
+                    tags_dir = paths["tags"][db_type]
                 intermediate = self.load_file_data(
-                    file_path=file_path, tags_dir=paths["tags"][db_type], opts=data_opts
+                    file_path=file_path, tags_dir=tags_dir, opts=data_opts
                 )
 
                 if database.save_intermediates:
@@ -390,11 +387,13 @@ class DataHandler(ABC):
                 return False
         return True
 
-    def check_dataset(self, database, db_types):
+    def check_dataset(self, database, db_types=None):
         paths = self.get_database_paths(database)
         file_lists = self.check_file_lists(database, paths)
+        db_types = db_types or database.db_types
         for db_type, file_list in file_lists.items():
             if db_types and db_type in db_types:
+                print("Checking database:", database["name"], "with type", db_type)
                 # * Overwrite if generate_file_lists is true as file lists will be recreated
                 overwrite = database.overwrite or database.generate_file_lists
                 if not self.check_dataset_exists(paths, db_type) or overwrite:
@@ -405,7 +404,6 @@ class DataHandler(ABC):
     def check_datasets(self, databases=None, db_types=None):
         databases = databases or self.databases.values()
         for database in databases:
-            print("Checking database:", database["name"])
             self.check_dataset(database, db_types)
 
     def load_file(self, file_name):
