@@ -71,10 +71,13 @@ class DLModel(ABC):
     def prepare_data(self, data):
         return data
 
-    def save_params(self):
+    def save_options(self, file_name, options):
         file_utils.ensure_path_exists(self.opts.results_save_dir)
-        with open(self.opts.results_save_dir / "network_opts.yaml", "w") as f:
-            yaml.dump(self.opts.opts, f, default_flow_style=False)
+        with open(self.opts.results_save_dir / file_name, "w") as f:
+            yaml.dump(options, f, default_flow_style=False)
+
+    def save_params(self):
+        self.save_options("network_opts.yaml", self.opts.opts)
 
     def save_model(self, path=None):
         self.save_params()
