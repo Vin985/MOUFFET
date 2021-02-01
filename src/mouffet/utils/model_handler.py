@@ -116,10 +116,10 @@ class ModelHandler(ABC):
                 "Argument 'model' should be an instance of dlbd.options.ModelOptions or a dict"
             )
         model_class = model_opts["class"]
-        if issubclass(model_class, DLModel):
-            cls = model_class
-        elif isinstance(model_class, str):
+        if isinstance(model_class, str):
             cls = pydoc.locate(model_class)
+        elif issubclass(model_class, DLModel):
+            cls = model_class
         else:
             raise ValueError(
                 "Option 'class' should either be a subclass of",
