@@ -1,17 +1,26 @@
-
-data_config: "src/evaluation_data_config.yaml"
+# Path to the data config file for evaluation
+data_config: ""
+# Save the results or not
 save_results: True
 
 ###########
 ## Paths ##
 ###########
+
+#Path where predictions are saved and loaded
 predictions_dir: "results/predictions"
+# Path where evaluation results are saved
 evaluation_dir: "results/evaluation"
+# Path where model weights are saved
 weights_dir: "results/models"
 
 ###############
 ## Detectors ##
 ###############
+
+# List of detectors to use in the evaluation. 
+# Each entry should at least specify the 'type' option that must be linked to a key in a subclass
+# of mouffet.evaluation.Evaluator.DETECTORS 
 detectors: 
   - type: "standard"
     min_activity: 0.95
