@@ -24,12 +24,8 @@ class TF2Model(DLModel):
 
     def basic_step(self, data, labels, step_type):
         training = step_type == self.STEP_VALIDATION
-        # training=False is only needed if there are layers with different
-        # behavior during training versus inference (e.g. Dropout).
         if not training:
             with tf.GradientTape() as tape:
-                # training=True is only needed if there are layers with different
-                # behavior during training versus inference (e.g. Dropout).
                 predictions = self.model(data, training=True)
                 loss = self.tf_loss(labels, predictions)
             gradients = tape.gradient(loss, self.model.trainable_variables)
@@ -92,7 +88,7 @@ class TF2Model(DLModel):
 
         self.init_training()
 
-        print(self.opts.model_id)
+        print("Training model", self.opts.model_id)
 
         train_sampler, validation_sampler = self.init_samplers()
 
@@ -109,7 +105,7 @@ class TF2Model(DLModel):
         # )
 
         for epoch in range(from_epoch + 1, self.opts["model"]["max_epochs"] + 1):
-            # Reset the metrics at the start of the next epoch
+            # * Reset the metrics at the start of the next epoch
             self.reset_states()
 
             self.run_step("train", training_data, epoch, train_sampler)
@@ -135,7 +131,6 @@ class TF2Model(DLModel):
         self.save_model()
 
     def create_writers(self):
-        # current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         log_dir = Path(self.opts.logs["log_dir"]) / (
             self.opts.model_id + "_v" + str(self.opts.save_version)
         )
@@ -155,24 +150,35 @@ class TF2Model(DLModel):
 
     def run_step(self, step_type, data, step, sampler):
         # i = 0
+        # import skimage.io
+        # import numpy as np
+        # import librosa
+        # from datetime import datetime
 
-        # dataset = tf.data.Dataset.from_generator(
-        #     sampler(self.get_raw_data(data), self.get_ground_truth(data)),
-        #     output_types=(tf.float32, tf.int32),
-        #     output_shapes=(tf.TensorShape([]), tf.TensorShape([128])),
-        # output_signature=(
-        #     tf.TensorSpec(shape=(), dtype=tf.float32),
-        #     tf.RaggedTensorSpec(shape=(128, None), dtype=tf.int32),
-        # ),
-        # )
+        # def scale_minmax(X, min=0.0, max=1.0):
+        #     X_std = (X - X.min()) / (X.max() - X.min())
+        #     X_scaled = X_std * (max - min) + min
+        #     return X_scaled
+        # filename = datetime.now().strftime("%Y%m%d") + "_{}.png"
 
         for data, labels in tqdm(
             sampler(self.get_raw_data(data), self.get_ground_truth(data))
         ):
 
-            # print(data)
+            # mels = librosa.amplitude_to_db(np.abs(data[0]), ref=np.max)
+            # # mels = np.log(data[0] + 1e-9)  # add small number to avoid log(0)
 
-            # if i == 10:
+            # # min-max scale to fit inside 8-bit range
+            # img = scale_minmax(mels, 0, 255).astype(np.uint8)
+            # img = np.flip(img, axis=0)  # put low frequencies at the bottom in image
+            # img = 255 - img  # invert. make black==more energy
+
+            # # save as PNG
+            # skimage.io.imsave(
+            #     self.opts.model_dir / "../images" / filename.format(i), img
+            # )
+
+            # if i == 1:
             #     break
             # i += 1
             getattr(self, step_type + "_step")(data, labels)
@@ -192,12 +198,6 @@ class TF2Model(DLModel):
     def load_weights(self, path=None, from_epoch=None):
         if not path:
             path = self.opts.get_weights_path(from_epoch)
-            # if from_epoch:
-            #     path = self.opts.get_intermediate_path(
-            #         from_epoch, version=self.opts["model"].get("from_version", -1)
-            #     )
-            # else:
-            #     path = str(self.opts.results_load_dir / self.opts.model_id)
         self.model.load_weights(path)
 
     @abstractmethod
