@@ -21,36 +21,6 @@ class Evaluator(ModelHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    # def get_model(self, model_opts):
-    #     """Load a model from the options provided by model_opts. Note: the options
-    #     saved during training will be loaded and overriden by the relevant options from
-    #     model_opts (especially the paths). One exception is the "id" and "id_prefixes" options
-    #     as the one from the old options will always be used to prevent any conflict if the user
-    #     decides to define a new id for saving the evaluation results.
-
-    #     Args:
-    #         model_opts (mouffet.options.ModelOptions): The model options for the current scenario
-
-    #     Returns:
-    #         mouffet.model.DLModel: the loaded model
-    #     """
-    #     old_opts = file_utils.load_config(
-    #         Path(self.get_option("model_dir", model_opts))
-    #         / model_opts["name"]
-    #         / str(model_opts.load_version)
-    #         / "network_opts.yaml"
-    #     )
-    #     old_opts["data_config"] = model_opts["data_config"]
-    #     # * To load the model, we use the old opts updated by the scenario, except for the id
-    #     opts = ModelOptions(old_opts)
-    #     common_utils.deep_dict_update(
-    #         opts.opts, model_opts.opts, except_keys=["id", "id_prefixes"]
-    #     )
-
-    #     model = self.get_model_instance(opts)
-    #     model.load_weights(from_epoch=opts["model"].get("from_epoch", 0))
-    #     return model
-
     @staticmethod
     @abstractmethod
     def classify_element(model, element, *args, **kwargs):
