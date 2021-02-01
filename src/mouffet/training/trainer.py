@@ -76,7 +76,7 @@ class Trainer(ModelHandler):
                     )
                     for db_type in db_types
                 ]
-                self.model.save_params()
+                self.model.save_options("databases.yaml", databases)
                 self.model.train(*data)
             except Exception:
                 print(traceback.format_exc())
