@@ -242,8 +242,11 @@ class DataHandler(ABC):
         data_path = paths["data"]["training"]
         if not data_path.exists():
             raise ValueError(
-                "'data_dir' option must be provided to split into test, training and"
-                + "validation subsets"
+                (
+                    "Data path {} does not exist. Please provide a valid data folder to"
+                    + "to split into test, training and"
+                    + "validation subsets"
+                ).format(data_path)
             )
         split_opts = database.get("split", None)
         if not split_opts:
@@ -256,7 +259,7 @@ class DataHandler(ABC):
             split_props.append(test_split)
         val_split = split_opts.get("validation", 0.2)
         split_props.append(val_split)
-        splits = split_func(data_path, split_props, [".wav"])
+        splits = split_func(data_path, split_props, database.data_extensions)
         res = {}
         idx = 0
         if test_split:
@@ -414,6 +417,8 @@ class DataHandler(ABC):
     def check_datasets(self, databases=None, db_types=None):
         databases = databases or self.databases.values()
         for database in databases:
+            if isinstance(database, str):
+                database = self.databases[database]
             self.check_dataset(database, db_types)
 
     def load_file(self, file_name):
