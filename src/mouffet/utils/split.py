@@ -4,23 +4,26 @@ from .file import list_folder
 
 
 def random_split(path, split_props, extensions):
-    if not path.exists():
-        raise ValueError(
-            "'audio_dir' option must be provided to split into training and validation subsets"
-        )
+
+    splits = [[] for i in range(len(split_props) + 1)]
+
     files = [str(p) for p in path.rglob("*") if p.suffix.lower() in extensions]
     n_files = len(files)
-    n_validation = int(split_props * n_files)
-    validation_idx = random.sample(range(0, n_files), n_validation)
-    training, validation = [], []
-    for i in range(0, n_files):
-        if i in validation_idx:
-            validation.append(files[i])
-        else:
-            training.append(files[i])
 
-    # Save file_list
-    return {"training": training, "validation": validation}
+    random.shuffle(files)
+    idx = 0
+    start_idx = 0
+
+    for split_prop in split_props:
+        n_split = int(split_prop * n_files)
+        n_files = n_files - n_split
+        splits[idx] = files[start_idx : start_idx + n_split]
+        print(n_files, len(splits[idx]))
+        start_idx = start_idx + n_split
+        idx += 1
+    splits[idx] = files[start_idx : len(files)]
+
+    return splits
 
 
 def split_list(data, split_props):
