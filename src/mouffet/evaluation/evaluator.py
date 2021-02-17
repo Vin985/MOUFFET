@@ -111,12 +111,11 @@ class Evaluator(ModelHandler):
         default = self.opts.get(element_type + "_options", {})
         scenarios = []
         for element in elements:
+            # * Add default options to scenario
             tmp = common_utils.deep_dict_update(default, element, copy=True)
             if "scenarios" in tmp:
                 scenario = tmp.pop("scenarios")
                 for opts in common_utils.expand_options_dict(scenario):
-                    # # * Add default options to scenario
-                    # res = common_utils.deep_dict_update(clean, default, copy=True)
                     # * Add expanded options
                     res = common_utils.deep_dict_update(tmp, opts, copy=True)
                     scenarios.append(res)
@@ -189,3 +188,5 @@ class Evaluator(ModelHandler):
         if self.opts.get("save_results", True):
             self.save_results(stats)
         return stats
+
+
