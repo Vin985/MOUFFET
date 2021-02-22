@@ -15,6 +15,32 @@ from ..utils.model_handler import ModelHandler
 
 
 class Evaluator(ModelHandler):
+    """ Base class for evaluating models. Inherits ModelHandler
+
+    Relevant options:
+
+    <Global>
+    data_config: Path to the data configuration file used to initialize the data handler.
+    evaluation_dir: Directory where to save results
+
+    <Models>
+    model_dir: Directory where to load models.
+    predictions_dir: Directory where to load/save predictions.
+    reclassify: Run the model again even if a prediction file is found
+
+    <Detectors>
+    type: The type of detector corresponding to one of the keys of DETECTORS attribute of the subclass
+
+
+    Args:
+        ModelHandler ([type]): [description]
+
+    Raises:
+        AttributeError: [description]
+
+    Returns:
+        [type]: [description]
+    """
 
     DETECTORS = {}
 
@@ -76,12 +102,15 @@ class Evaluator(ModelHandler):
         return detector
 
     def consolidate_stats(self, stats):
-        tmp_stats, plots = [], []
+        tmp_stats, plots = [], {}
         for stat in stats:
             tmp_stats.append(pd.Series(stat["stats"]))
-            plt = stat.get("tag_repartition", None)
+            plt = stat.get("plots", None)
             if plt:
-                plots.append(plt)
+                for key, value in plt.items():
+                    if not key in plots:
+                        plots[key] = []
+                    plots[key].append(value)
         stats_df = pd.DataFrame(tmp_stats)
         return stats_df, plots
 
@@ -100,11 +129,14 @@ class Evaluator(ModelHandler):
             ),
         )
         if plots:
-            plotnine.save_as_pdf_pages(
-                plots,
-                res_dir
-                / ("_".join(filter(None, [prefix, eval_id, "tag_repartition.pdf"],))),
-            )
+            for key, values in plots.items():
+                plotnine.save_as_pdf_pages(
+                    values,
+                    res_dir
+                    / (
+                        "_".join(filter(None, [prefix, eval_id, "{}.pdf".format(key)],))
+                    ),
+                )
 
     def expand_scenarios(self, element_type):
         elements = self.opts[element_type]
@@ -161,6 +193,7 @@ class Evaluator(ModelHandler):
                 )
                 + "\033[0m"
             )
+            detector_opts["scenario_info"] = stats_infos
             detector = self.get_detector(detector_opts)
             if detector:
                 tags = self.load_tags(database, detector.REQUIRES)
@@ -168,19 +201,7 @@ class Evaluator(ModelHandler):
                 stats_infos.update(model_stats["stats"])
                 stats_infos.update(stats_opts)
                 model_stats["stats"] = stats_infos
-                plt = model_stats.get("tag_repartition", None)
-                if plt:
-                    plt += ggtitle(
-                        (
-                            "Tag repartition for model {}, database {}, class {}\n"
-                            + "with detector options {}"
-                        ).format(
-                            model_opts.model_id,
-                            database.name,
-                            database.class_type,
-                            detector_opts,
-                        )
-                    )
+
         return model_stats
 
     def evaluate(self):
@@ -188,5 +209,4 @@ class Evaluator(ModelHandler):
         if self.opts.get("save_results", True):
             self.save_results(stats)
         return stats
-
 

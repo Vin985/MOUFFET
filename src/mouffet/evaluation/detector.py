@@ -43,8 +43,13 @@ class Detector(ABC):
     def evaluate_scenario(self, predictions, tags, options):
         return {"options": options, "stats": [], "matches": []}
 
-    def plot_PR_curve(self, stats):
-        pass
+    def get_PR_scenarios(self, options):
+        opts = deep_dict_update(
+            self.DEFAULT_PR_CURVE_OPTIONS, options.pop("PR_curve", {})
+        )
+        options[opts["variable"]] = opts["values"]
+        scenarios = expand_options_dict(options)
+        return scenarios
 
     def get_PR_curve(self, predictions, tags, options):
         scenarios = self.get_PR_scenarios(options)
@@ -57,15 +62,15 @@ class Detector(ABC):
             for k in {key for tmp_dict in tmp for key in tmp_dict}
         }
         res["matches"] = pd.concat(res["matches"])
-        res["stats"] = pd.DataFrame(res["stats"])
+        res["PR_curve"] = pd.DataFrame(res["stats"])
         res["options"] = pd.DataFrame(res["options"])
-        self.plot_PR_curve(res)
+        if options.get("draw_plots", True):
+            res = self.plot_PR_curve(res, options)
         return res
 
-    def get_PR_scenarios(self, options):
-        opts = deep_dict_update(
-            self.DEFAULT_PR_CURVE_OPTIONS, options.pop("PR_curve", {})
-        )
-        options[opts["variable"]] = opts["values"]
-        scenarios = expand_options_dict(options)
-        return scenarios
+    def draw_plots(self, options, **kwargs):
+        return None
+
+    def plot_PR_curve(self, stats, options):
+        return {}
+
