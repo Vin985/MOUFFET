@@ -27,6 +27,30 @@ def deep_dict_update(original, update, copy=False, replace=True, except_keys=Non
     return original
 
 
+def listdict2dictlist(list_dict, flatten=False):
+    """Function that takes a list of dict and converts it into a dict of lists
+
+    Args:
+        list_dict ([list]): The original list of dicts
+
+    Returns:
+        [dict]: A dict of lists
+    """
+    keys = {key for tmp_dict in list_dict for key in tmp_dict}
+    res = {}
+    for k in keys:
+        tmp = []
+        for d in list_dict:
+            if k in d:
+                val = d.get(k)
+                if flatten and isinstance(val, list):
+                    tmp += val
+                else:
+                    tmp.append(val)
+        res[k] = tmp
+    return res
+
+
 def to_range(opts):
     return range_list(opts["start"], opts["end"], opts.get("step", 1))
 
