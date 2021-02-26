@@ -121,6 +121,10 @@ class Evaluator(ModelHandler):
         # stats_df = pd.concat(tmp_stats)
         return res
 
+    def save_pr_curve_data(self, pr_df):
+        print("saving_pr_curve data")
+        pass
+
     def save_results(self, results):
         res = self.consolidate_results(results)
         time = datetime.now()
@@ -135,6 +139,14 @@ class Evaluator(ModelHandler):
                 )
             ),
         )
+
+        pr_df = res["stats"].loc[res["stats"]["PR_curve"] == True]
+
+        print(pr_df)
+
+        if not pr_df.empty:
+            self.save_pr_curve_data(pr_df)
+
         plots = res.get("plots", {})
         if plots:
             for key, values in plots.items():
