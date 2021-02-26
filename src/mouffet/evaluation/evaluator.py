@@ -101,26 +101,33 @@ class Evaluator(ModelHandler):
             return None
         return detector
 
-    def consolidate_stats(self, stats):
-        tmp_stats, plots = [], {}
-        for stat in stats:
-            tmp_stats.append(pd.Series(stat["stats"]))
-            plt = stat.get("plots", None)
-            if plt:
-                for key, value in plt.items():
-                    if not key in plots:
-                        plots[key] = []
-                    plots[key].append(value)
-        stats_df = pd.DataFrame(tmp_stats)
-        return stats_df, plots
+    def consolidate_results(self, results):
+        res = common_utils.listdict2dictlist(results)
+        res["matches"] = pd.concat(res["matches"])
+        res["stats"] = pd.concat(res["stats"])
+        res["options"] = pd.concat(res["options"])
+        res["plots"] = common_utils.listdict2dictlist(
+            res.get("plots", []), flatten=True
+        )
 
-    def save_results(self, stats):
-        stats_df, plots = self.consolidate_stats(stats)
+        # for result in results:
+        #     tmp_stats.append(result["stats"])
+        #     plt = result.get("plots", None)
+        #     if plt:
+        #         for key, value in plt.items():
+        #             if not key in plots:
+        #                 plots[key] = []
+        #             plots[key].append(value)
+        # stats_df = pd.concat(tmp_stats)
+        return res
+
+    def save_results(self, results):
+        res = self.consolidate_results(results)
         time = datetime.now()
         res_dir = Path(self.opts.get("evaluation_dir", ".")) / time.strftime("%Y%m%d")
         prefix = time.strftime("%H%M%S")
         eval_id = self.opts.get("id", "")
-        stats_df.to_csv(
+        res["stats"].to_csv(
             str(
                 file_utils.ensure_path_exists(
                     res_dir / ("_".join(filter(None, [prefix, eval_id, "stats.csv"]))),
@@ -128,8 +135,10 @@ class Evaluator(ModelHandler):
                 )
             ),
         )
+        plots = res.get("plots", {})
         if plots:
             for key, values in plots.items():
+
                 plotnine.save_as_pdf_pages(
                     values,
                     res_dir
@@ -198,9 +207,16 @@ class Evaluator(ModelHandler):
             if detector:
                 tags = self.load_tags(database, detector.REQUIRES)
                 model_stats = detector.evaluate(preds, tags, detector_opts)
-                stats_infos.update(model_stats["stats"])
-                stats_infos.update(stats_opts)
-                model_stats["stats"] = stats_infos
+                model_stats["stats"] = pd.concat(
+                    [
+                        pd.DataFrame([stats_infos]),
+                        model_stats["stats"].assign(**stats_opts),
+                    ],
+                    axis=1,
+                )
+                model_stats["stats"]["PR_curve"] = detector_opts.get(
+                    "do_PR_curve", False
+                )
 
         return model_stats
 

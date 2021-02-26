@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 
 import pandas as pd
+from plotnine import aes, element_text, geom_line, ggplot, ggtitle, theme, theme_classic
 
-from ..utils.common import deep_dict_update, expand_options_dict
+from ..utils.common import deep_dict_update, expand_options_dict, listdict2dictlist
 
 
 class Detector(ABC):
@@ -17,9 +18,7 @@ class Detector(ABC):
     }
     TAGS_COLUMNS_RENAME = {"id": "tag_id"}
 
-    DEFAULT_MIN_ACTIVITY = 0.85
-    DEFAULT_MIN_DURATION = 0.1
-    DEFAULT_END_THRESHOLD = 0.6
+    DEFAULT_ACTIVITY_THRESHOLD = 0.85
 
     DEFAULT_PR_CURVE_OPTIONS = {
         "variable": "activity_threshold",
@@ -57,13 +56,11 @@ class Detector(ABC):
         for scenario in scenarios:
             tmp.append(self.evaluate_scenario(predictions, tags, scenario))
 
-        res = {
-            k: [d.get(k) for d in tmp]
-            for k in {key for tmp_dict in tmp for key in tmp_dict}
-        }
+        res = listdict2dictlist(tmp)
         res["matches"] = pd.concat(res["matches"])
-        res["PR_curve"] = pd.DataFrame(res["stats"])
+        res["stats"] = pd.concat(res["stats"])
         res["options"] = pd.DataFrame(res["options"])
+        res["plots"] = listdict2dictlist(res.get("plots", []))
         if options.get("draw_plots", True):
             res = self.plot_PR_curve(res, options)
         return res
@@ -71,6 +68,43 @@ class Detector(ABC):
     def draw_plots(self, options, **kwargs):
         return None
 
-    def plot_PR_curve(self, stats, options):
-        return {}
+    def plot_PR_curve(self, results, options):
+        PR_df = results["stats"]
+
+        plt = (
+            ggplot(
+                data=PR_df,
+                mapping=aes(
+                    x=options.get("PR_curve_x", "recall"),
+                    y=options.get("PR_curve_y", "precision"),
+                ),
+            )
+            + geom_line()
+            + theme_classic()
+            + theme(
+                plot_title=element_text(
+                    weight="bold", size=14, margin={"t": 10, "b": 10}
+                ),
+                figure_size=(20, 10),
+                text=element_text(size=12, weight="bold"),
+            )
+            + ggtitle(
+                (
+                    "Precision/Recall curve for model {}, database {}, class {}\n"
+                    + "with detector options {}"
+                ).format(
+                    options["scenario_info"]["model"],
+                    options["scenario_info"]["database"],
+                    options["scenario_info"]["class"],
+                    options,
+                )
+            )
+        )
+
+        # plt = PR_df.plot(
+        #     "recall_sample", "precision", figsize=(20, 16), fontsize=26
+        # ).get_figure()
+        # plt.savefig("test_arctic.pdf")
+        results["plots"].update({"PR_curve": plt})
+        return results
 
