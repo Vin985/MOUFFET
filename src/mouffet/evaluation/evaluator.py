@@ -105,7 +105,6 @@ class Evaluator(ModelHandler):
         res = common_utils.listdict2dictlist(results)
         res["matches"] = pd.concat(res["matches"])
         res["stats"] = pd.concat(res["stats"])
-        res["options"] = pd.concat(res["options"])
         res["plots"] = common_utils.listdict2dictlist(
             res.get("plots", []), flatten=True
         )
@@ -123,7 +122,17 @@ class Evaluator(ModelHandler):
 
     def save_pr_curve_data(self, pr_df):
         print("saving_pr_curve data")
-        pass
+        res_dir = Path(self.opts.get("evaluation_dir", "."))
+        pr_file = res_dir / self.opts.get("PR_curve_save_file", "PR_curves.feather")
+        if pr_file.exists():
+            pr_curves = pd.read_feather(pr_file)
+            res = pd.concat([pr_df, pr_curves]).drop_duplicates()
+        else:
+            res = pr_df
+
+        print(res)
+        res.reset_index(inplace=True, drop=True)
+        res.to_feather(pr_file)
 
     def save_results(self, results):
         res = self.consolidate_results(results)
@@ -141,8 +150,6 @@ class Evaluator(ModelHandler):
         )
 
         pr_df = res["stats"].loc[res["stats"]["PR_curve"] == True]
-
-        print(pr_df)
 
         if not pr_df.empty:
             self.save_pr_curve_data(pr_df)
@@ -203,7 +210,7 @@ class Evaluator(ModelHandler):
                 "class": database.class_type,
             }
             stats_opts = {
-                "detector_opts": str(detector_opts),
+                # "detector_opts": str(detector_opts),
                 "database_opts": str(database.updated_opts),
                 "model_opts": str(model_opts),
             }
@@ -218,7 +225,7 @@ class Evaluator(ModelHandler):
             detector = self.get_detector(detector_opts)
             if detector:
                 tags = self.load_tags(database, detector.REQUIRES)
-                model_stats = detector.evaluate(preds, tags, detector_opts)
+                model_stats = detector.run_evaluation(preds, tags, detector_opts)
                 model_stats["stats"] = pd.concat(
                     [
                         pd.DataFrame([stats_infos]),

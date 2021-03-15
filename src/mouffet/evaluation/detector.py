@@ -32,15 +32,20 @@ class Detector(ABC):
     def get_events(self, predictions, options, *args, **kwargs):
         pass
 
-    def evaluate(self, predictions, tags, options):
+    def run_evaluation(self, predictions, tags, options):
         if options.get("do_PR_curve", False):
             return self.get_PR_curve(predictions, tags, options)
         else:
             return self.evaluate_scenario(predictions, tags, options)
 
-    @abstractmethod
     def evaluate_scenario(self, predictions, tags, options):
-        return {"options": options, "stats": [], "matches": []}
+        res = self.evaluate(predictions, tags, options)
+        res["stats"]["options"] = str(options)
+        return res
+
+    @abstractmethod
+    def evaluate(self, predictions, tags, options):
+        return {"stats": None, "matches": None}
 
     def get_PR_scenarios(self, options):
         opts = deep_dict_update(
@@ -59,7 +64,7 @@ class Detector(ABC):
         res = listdict2dictlist(tmp)
         res["matches"] = pd.concat(res["matches"])
         res["stats"] = pd.concat(res["stats"])
-        res["options"] = pd.DataFrame(res["options"])
+        # res["options"] = pd.concat(res["options"])
         res["plots"] = listdict2dictlist(res.get("plots", []))
         if options.get("draw_plots", True):
             res = self.plot_PR_curve(res, options)
