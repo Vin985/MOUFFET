@@ -147,3 +147,10 @@ def get_dict_path(dict_obj, path, default=None, sep="--"):
             return default
 
     return value
+
+
+def join_tuple(tuple, sep):
+    tuple = list(filter(None, tuple))
+    if len(tuple) > 1:
+        return sep.join(tuple)
+    return tuple[0]
