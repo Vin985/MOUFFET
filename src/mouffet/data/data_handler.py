@@ -489,3 +489,37 @@ class DataHandler(ABC):
         if not by_dataset:
             res = self.merge_datasets(res)
         return res
+
+    @abstractmethod
+    def get_summary(self, dataset):
+        return {}
+
+    def get_summaries(
+        self, db_types=None, databases=None, detailed=True, load_opts=None
+    ):
+        res = {}
+        databases = databases or self.databases.values()
+        # * Iterate over databases
+        for database in databases:
+            db_types = db_types or database.db_types
+
+            # * Only load data if the give db_type is in the database definition
+            for db_type in db_types:
+                if not db_type in database.db_types:
+                    continue
+                print(
+                    "Generating summary for {0} data of database: {1}".format(
+                        db_type, database["name"]
+                    )
+                )
+                dataset = self.load_dataset(database, db_type, load_opts)
+
+                summary = self.get_summary(dataset)
+
+                if not database["name"] in res:
+                    res[database["name"]] = {}
+
+                res[database["name"]][db_type] = summary
+
+        return res
+
