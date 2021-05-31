@@ -66,7 +66,7 @@ class DLModel(ABC):
 
     @abstractmethod
     def get_raw_data(self, data):
-        return data["spectrograms"]
+        return data
 
     def prepare_data(self, data):
         return data
