@@ -1,6 +1,6 @@
 import random
 
-from .file import list_folder
+from ..utils.file import list_folder
 
 
 def random_split(path, split_props, extensions):

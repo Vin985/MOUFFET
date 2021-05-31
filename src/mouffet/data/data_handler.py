@@ -10,7 +10,7 @@ import pandas as pd
 from ..options.database_options import DatabaseOptions
 from ..utils import common as common_utils
 from ..utils.file import ensure_path_exists, get_full_path, list_files
-from ..utils.split import random_split
+from .split import random_split
 from .data_structure import DataStructure
 
 
