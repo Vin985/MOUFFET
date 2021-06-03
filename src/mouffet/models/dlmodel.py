@@ -1,7 +1,7 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 import yaml
-
+from .model import Model
 from ..utils import file as file_utils
 
 DEFAULT_N_FFT = 2048
@@ -9,28 +9,14 @@ DEFAULT_HOP_LENGTH = 1024  # 512
 DEFAULT_N_MELS = 32  # 128
 
 
-class DLModel(ABC):
+class DLModel(Model):
     NAME = "DLMODEL"
 
     STEP_TRAINING = "train"
     STEP_VALIDATION = "validation"
 
-    def __init__(self, opts=None):
-        """Create the layers of the neural network, with the same options we used in training"""
-        self.model = None
-        self._opts = None
-        if opts:
-            self.opts = opts
-
-    @property
-    def opts(self):
-        return self._opts
-
-    @opts.setter
-    def opts(self, opts):
-        self._opts = opts
-        self._opts.opts["name"] = self.NAME
-        self.model = self.create_net()
+    def create_model(self):
+        return self.create_net()
 
     @abstractmethod
     def create_net(self):
