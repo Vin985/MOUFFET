@@ -10,61 +10,67 @@ DEFAULT_N_MELS = 32  # 128
 
 
 class DLModel(Model):
+    """Subclass of mouffet.models.model.Model for deep learning models
+    """
+
     NAME = "DLMODEL"
 
-    STEP_TRAINING = "train"
-    STEP_VALIDATION = "validation"
-
     def create_model(self):
+        """Basic implementation of model creation for deep learning models. By default only creates
+        the network
+
+        Returns:
+            Object: The network created by the "create_net" method
+        """
         return self.create_net()
 
     @abstractmethod
     def create_net(self):
+        """Creates the network for the deep learning model
+
+        Returns:
+            Object: The deep learning network
+        """
         return 0
 
     @abstractmethod
-    def predict(self, x):
-        raise NotImplementedError("predict function not implemented for this class")
-
-    @abstractmethod
     def train(self, training_data, validation_data):
+        """Function call by the trainer to train the model
+
+        Args:
+            training_data (Object): The training data containing raw data and ground truth
+            validation_data (Object): The validation data containing raw data and ground truth
+
+        Raises:
+            NotImplementedError: Class must be inherited
+        """
         raise NotImplementedError("train function not implemented for this class")
 
     @abstractmethod
     def save_weights(self, path=None):
+        """Save the weigths of the model
+
+        Args:
+            path (str or pathlib.Path, optional): The path where the weigths should be saved. Defaults to None.
+
+        Raises:
+            NotImplementedError: Class must be inherited
+        """
         raise NotImplementedError(
             "save_weights function not implemented for this class"
         )
 
-    @abstractmethod
-    def load_weights(self, path=None, from_epoch=None):
-        raise NotImplementedError(
-            "load_weights function not implemented for this class"
-        )
-
-    @abstractmethod
-    def classify(self, data, sampler):
-        return None
-
-    @abstractmethod
-    def get_ground_truth(self, data):
-        return data
-
-    @abstractmethod
-    def get_raw_data(self, data):
-        return data
-
-    def prepare_data(self, data):
-        return data
-
-    def save_options(self, file_name, options):
-        file_utils.ensure_path_exists(self.opts.results_save_dir)
-        with open(self.opts.results_save_dir / file_name, "w") as f:
-            yaml.dump(options, f, default_flow_style=False)
-
     def save_params(self):
+        """Save network options
+        """
         self.save_options("network_opts.yaml", self.opts.opts)
 
     def save_model(self, path=None):
+        """Default implementation for deep learning model saving.
+        Calls save_params to save the network options and save_weigths to save the weigths of the model.
+
+        Args:
+            path ([type], optional): [description]. Defaults to None.
+        """
         self.save_params()
         self.save_weights(path)

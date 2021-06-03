@@ -10,6 +10,14 @@ DEFAULT_N_MELS = 32  # 128
 
 
 class Model(ABC):
+    """Base abstract class for defining models. Must be subclassed.
+
+    Attributes:
+        NAME: Name of the model class. Will be used to identify and save classes
+        STEP_TRAINING: The name of the training step. Will be used in configuration file
+        STEP_VALIDATION: The name of the validation step. Will be used in configuration file
+    """
+
     NAME = "MODEL"
 
     STEP_TRAINING = "train"
@@ -53,7 +61,7 @@ class Model(ABC):
 
     @abstractmethod
     def predict(self, x):
-        """Function
+        """Predict data using the model
 
         Args:
             x (data): the data on which we want to makae a prediction. This function should make only
@@ -133,7 +141,7 @@ class Model(ABC):
         By default, this will be the following combination:
         model_dir/model_id/version
         where model_dir and model_id can be found in the model configuration file and version is
-        calculated automatically. 
+        calculated automatically.
 
         Args:
             file_name (string or pathlib.Path): The name of the file to be saved
