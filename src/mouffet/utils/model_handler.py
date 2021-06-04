@@ -19,8 +19,8 @@ class ModelHandler(ABC):
         opts_path="",
         dh=None,
         dh_class=None,
-        model=None,
-        model_class=None,
+        # model=None,
+        # model_class=None,
         **kwargs,
     ):
         if not opts:
@@ -32,11 +32,11 @@ class ModelHandler(ABC):
                     + "or the path to the config file via opts_path"
                 )
         self.opts = opts
-        self._model = None
-        self.model_class = model_class
+        # self._model = None
+        # self.model_class = model_class
         self._data_handler = None
-        if model:
-            self.model = model
+        # if model:
+        #     self.model = model
         if dh_class:
             self.DATA_HANDLER_CLASS = dh_class
         if dh:
@@ -44,15 +44,15 @@ class ModelHandler(ABC):
 
         self.scenarios = self.load_scenarios()
 
-    @property
-    def model(self):
-        return self._model
+    # @property
+    # def model(self):
+    #     return self._model
 
-    @model.setter
-    def model(self, model):
-        if model and not model.opts:
-            model.opts = self.opts
-        self._model = model
+    # @model.setter
+    # def model(self, model):
+    #     if model and not model.opts:
+    #         model.opts = self.opts
+    #     self._model = model
 
     @property
     def data_handler(self):
