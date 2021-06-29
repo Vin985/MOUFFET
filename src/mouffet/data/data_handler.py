@@ -208,16 +208,17 @@ class DataHandler(ABC):
         return paths
 
     @staticmethod
-    def load_file_lists(paths):
+    def load_file_lists(paths, db_types=None):
         res = {}
         for db_type, path in paths["file_list"].items():
-            file_list = []
-            with open(path, mode="r") as f:
-                reader = csv.reader(f)
-                for name in reader:
-                    file_list.append(Path(name[0]))
-            res[db_type] = file_list
-            print("Loaded file: " + str(path))
+            if db_types and db_type in db_types:
+                file_list = []
+                with open(path, mode="r") as f:
+                    reader = csv.reader(f)
+                    for name in reader:
+                        file_list.append(Path(name[0]))
+                res[db_type] = file_list
+                print("Loaded file: " + str(path))
         return res
 
     @staticmethod
@@ -273,10 +274,14 @@ class DataHandler(ABC):
         print([(k + " " + str(len(v))) for k, v in res.items()])
         return res
 
-    def check_file_lists(self, database, paths):
+    def check_file_lists(self, database, paths, db_types=None):
         file_lists = {}
         msg = "Checking file lists for database {0}... ".format(database["name"])
-        file_lists_exist = all([path.exists() for path in paths["file_list"].values()])
+        if db_types is None:
+            file_list_paths = paths["file_list"].values()
+        else:
+            file_list_paths = [paths["file_list"][db_type] for db_type in db_types]
+        file_lists_exist = all([path.exists() for path in file_list_paths])
         # * Check if file lists are missing or need to be regenerated
         if not file_lists_exist or database.generate_file_lists:
             print(msg + "Generating file lists...")
@@ -293,7 +298,7 @@ class DataHandler(ABC):
         else:
             # * Load files
             print(msg + "Found all file lists. Now loading...")
-            file_lists = self.load_file_lists(paths)
+            file_lists = self.load_file_lists(paths, db_types)
         return file_lists
 
     def load_classes(self, database):
@@ -402,7 +407,7 @@ class DataHandler(ABC):
 
     def check_dataset(self, database, db_types=None):
         paths = self.get_database_paths(database)
-        file_lists = self.check_file_lists(database, paths)
+        file_lists = self.check_file_lists(database, paths, db_types)
         db_types = db_types or database.db_types
         for db_type, file_list in file_lists.items():
             if db_types and db_type in db_types:
