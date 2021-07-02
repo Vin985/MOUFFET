@@ -45,7 +45,8 @@ class Model(ABC):
             opts (dict): Model options
         """
         self._opts = opts
-        self._opts.opts["name"] = self.NAME
+        if not opts["name"]:
+            self._opts.opts["name"] = self.NAME
         self.model = self.create_model()
 
     @abstractmethod
