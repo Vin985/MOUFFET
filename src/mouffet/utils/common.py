@@ -3,6 +3,44 @@ from copy import deepcopy
 from itertools import product
 
 
+TERM_COLORS = {
+    "black": "\033[30m",
+    "red": "\033[31m",
+    "green": "\033[32m",
+    "orange": "\033[33m",
+    "blue": "\033[34m",
+    "purple": "\033[35m",
+    "cyan": "\033[36m",
+    "lightgrey": "\033[37m",
+    "darkgrey": "\033[90m",
+    "lightred": "\033[91m",
+    "lightgreen": "\033[92m",
+    "yellow": "\033[93m",
+    "lightblue": "\033[94m",
+    "pink": "\033[95m",
+    "lightcyan": "\033[96m",
+    "reset": "\033[00m",
+}
+
+
+def print_color(msg, color):
+    if not color in TERM_COLORS:
+        raise ValueError("Color {} is not supported".format(color))
+    print(TERM_COLORS[color] + msg + TERM_COLORS["reset"])
+
+
+def print_error(msg):
+    return print_color(msg, "red")
+
+
+def print_warning(msg):
+    return print_color(msg, "orange")
+
+
+def print_title(msg):
+    return print_color(msg, "lightgreen")
+
+
 def deep_dict_update(original, update, copy=False, replace=True, except_keys=None):
     """Recursively update a dict.
 

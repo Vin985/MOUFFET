@@ -64,7 +64,9 @@ class Trainer(ModelHandler):
         ]
         for scenario in self.scenarios:
             try:
-                print("training scenario with options: ", scenario)
+                common_utils.print_title(
+                    "Training scenario with options: {}".format(scenario)
+                )
                 databases = self.get_scenario_databases_options(scenario)
                 self.data_handler.check_datasets(databases=databases, db_types=db_types)
                 model = self.get_model_instance(ModelOptions(scenario))
@@ -78,4 +80,6 @@ class Trainer(ModelHandler):
                 model.train(*data)
             except Exception:
                 print(traceback.format_exc())
-                print("Error training the model for scenario ", scenario)
+                common_utils.print_error(
+                    "Error training the model for scenario {}".format(scenario)
+                )
