@@ -16,7 +16,7 @@
         {
             "label": "mouffet develop",
             "type": "shell",
-            "command": "python setup.py clean --all; python setup.py develop",
+            "command": "${config:python.pythonPath} setup.py clean --all; ${config:python.pythonPath} setup.py develop",
             "group": {
                 "kind": "build",
                 "isDefault": true
