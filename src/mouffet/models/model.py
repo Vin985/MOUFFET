@@ -74,7 +74,7 @@ class Model(ABC):
         raise NotImplementedError("predict function not implemented for this class")
 
     @abstractmethod
-    def classify(self, data, sampler=None):
+    def classify(self, data, sampler):
         """Perform classification on several data items using the sampler. This function should call
         predict.
 
