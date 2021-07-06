@@ -108,16 +108,6 @@ class Evaluator(ModelHandler):
         res["plots"] = common_utils.listdict2dictlist(
             res.get("plots", []), flatten=True
         )
-
-        # for result in results:
-        #     tmp_stats.append(result["stats"])
-        #     plt = result.get("plots", None)
-        #     if plt:
-        #         for key, value in plt.items():
-        #             if not key in plots:
-        #                 plots[key] = []
-        #             plots[key].append(value)
-        # stats_df = pd.concat(tmp_stats)
         return res
 
     def save_pr_curve_data(self, pr_df):
@@ -157,7 +147,6 @@ class Evaluator(ModelHandler):
         plots = res.get("plots", {})
         if plots:
             for key, values in plots.items():
-
                 plotnine.save_as_pdf_pages(
                     values,
                     res_dir
@@ -210,7 +199,6 @@ class Evaluator(ModelHandler):
                 "class": database.class_type,
             }
             stats_opts = {
-                # "detector_opts": str(detector_opts),
                 "database_opts": str(database.updated_opts),
                 "model_opts": str(model_opts),
             }
