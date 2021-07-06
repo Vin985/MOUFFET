@@ -1,8 +1,6 @@
 from abc import abstractmethod
 
-import yaml
 from .model import Model
-from ..utils import file as file_utils
 
 DEFAULT_N_FFT = 2048
 DEFAULT_HOP_LENGTH = 1024  # 512
@@ -51,7 +49,8 @@ class DLModel(Model):
         """Save the weigths of the model
 
         Args:
-            path (str or pathlib.Path, optional): The path where the weigths should be saved. Defaults to None.
+            path (str or pathlib.Path, optional): The path where the weigths should be saved.
+            Defaults to None.
 
         Raises:
             NotImplementedError: Class must be inherited
@@ -67,7 +66,8 @@ class DLModel(Model):
 
     def save_model(self, path=None):
         """Default implementation for deep learning model saving.
-        Calls save_params to save the network options and save_weigths to save the weigths of the model.
+        Calls save_params to save the network options and save_weigths to save the weights of
+        the model.
 
         Args:
             path ([type], optional): [description]. Defaults to None.
