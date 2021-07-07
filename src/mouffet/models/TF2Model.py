@@ -4,6 +4,8 @@ from pathlib import Path
 import tensorflow as tf
 from tqdm import tqdm
 
+from mouffet.utils.common import print_warning
+
 from .dlmodel import DLModel
 
 
@@ -92,10 +94,12 @@ class TF2Model(DLModel):
 
         train_sampler, validation_sampler = self.init_samplers()
 
-        from_epoch = self.opts["model"].get("from_epoch", 0)
-        if from_epoch:
-            self.load_weights(from_epoch=from_epoch)
-        epoch_save_step = self.opts["model"].get("epoch_save_step", None)
+        from_epoch = 0
+        if "use_weights" in self.opts:
+            self.load_weights()
+            from_epoch = self.opts["use_weights"].get("epoch", 0)
+
+        epoch_save_step = self.opts.get("epoch_save_step", None)
 
         # * Create logging writers
         self.create_writers()
@@ -104,7 +108,7 @@ class TF2Model(DLModel):
         #     str(Path(self.opts["logs"]["log_dir"]) / self.opts.model_id)
         # )
 
-        for epoch in range(from_epoch + 1, self.opts["model"]["max_epochs"] + 1):
+        for epoch in range(from_epoch + 1, self.opts["max_epochs"] + 1):
             # * Reset the metrics at the start of the next epoch
             self.reset_states()
 
@@ -195,9 +199,12 @@ class TF2Model(DLModel):
             path = str(self.opts.results_save_dir / self.opts.model_id)
         self.model.save_weights(path)
 
-    def load_weights(self, path=None, from_epoch=None):
-        if not path:
-            path = self.opts.get_weights_path(from_epoch)
+    def load_weights(self):
+        weight_opts = self.opts.get("use_weights", {})
+        if not weight_opts:
+            print_warning("Warning, no weights found for the current model. Skipping.")
+            return
+        path = self.opts.get_weights_path()
         self.model.load_weights(path)
 
     @abstractmethod

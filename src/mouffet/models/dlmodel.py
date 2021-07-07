@@ -46,11 +46,22 @@ class DLModel(Model):
 
     @abstractmethod
     def save_weights(self, path=None):
-        """Save the weigths of the model
+        """Save the weights of the model
 
         Args:
             path (str or pathlib.Path, optional): The path where the weigths should be saved.
             Defaults to None.
+
+        Raises:
+            NotImplementedError: Class must be inherited
+        """
+        raise NotImplementedError(
+            "save_weights function not implemented for this class"
+        )
+
+    @abstractmethod
+    def load_weights(self):
+        """Load the weights of the model
 
         Raises:
             NotImplementedError: Class must be inherited

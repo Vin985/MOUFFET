@@ -52,9 +52,22 @@ class ModelOptions(Options):
         return self.results_dir_root / str(self.version(save))
 
     def get_weights_path(self, epoch=None, version=None, as_string=True):
+        weight_opts = self.get("use_weights", {})
+        path = weight_opts.get("path", "")
+        if path:
+            return path
+
+        name = weight_opts.get("name", "")
+        if name and name != self.model_id:
+            # * Load weights from another model
+            tmp_opts = ModelOptions(self.opts)
+            tmp_opts._model_id = name
+            path = tmp_opts.get_weights_path()
+            return path
+        epoch = weight_opts.get("epoch", 0)
         if epoch:
             if version is None:
-                version = self.model.get("from_version", -1)
+                version = weight_opts.get("version", -1)
             path = self.get_intermediate_path(
                 epoch, version=version, as_string=as_string,
             )

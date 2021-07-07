@@ -106,7 +106,7 @@ class ModelHandler(ABC):
         )
 
         model = cls.get_model_instance(opts)
-        model.load_weights(from_epoch=opts["model"].get("from_epoch", 0))
+        model.load_weights()
         return model
 
     @staticmethod
