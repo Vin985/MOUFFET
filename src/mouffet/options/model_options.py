@@ -113,6 +113,9 @@ class ModelOptions(Options):
             # self.opts["model_id"] = self._model_id
         return self._model_id
 
+    @model_id.setter
+    def model_id(self, value):
+        self._model_id = value
     def resolve_id(self, model_id):
         prefixes = self.id_prefixes
         to_replace = re.findall("\\{(.+?)\\}", model_id)
