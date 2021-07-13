@@ -13,6 +13,7 @@ class DLModel(Model):
 
     NAME = "DLMODEL"
 
+    @abstractmethod
     def create_model(self):
         """Basic implementation of model creation for deep learning models. By default only creates
         the network
@@ -20,16 +21,16 @@ class DLModel(Model):
         Returns:
             Object: The network created by the "create_net" method
         """
-        return self.create_net()
-
-    @abstractmethod
-    def create_net(self):
-        """Creates the network for the deep learning model
-
-        Returns:
-            Object: The deep learning network
-        """
         return 0
+
+    # @abstractmethod
+    # def create_net(self):
+    #     """Creates the network for the deep learning model
+
+    #     Returns:
+    #         Object: The deep learning network
+    #     """
+    #     return 0
 
     @abstractmethod
     def train(self, training_data, validation_data):
