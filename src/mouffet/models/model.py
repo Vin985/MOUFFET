@@ -47,7 +47,6 @@ class Model(ABC):
         self._opts = opts
         if not opts["name"]:
             self._opts.opts["name"] = self.NAME
-        self.model = self.create_model()
 
     @abstractmethod
     def create_model(self):
