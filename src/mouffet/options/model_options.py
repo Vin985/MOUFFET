@@ -52,7 +52,7 @@ class ModelOptions(Options):
         return self.results_dir_root / str(self.version(save))
 
     def get_weights_path(self, epoch=None, version=None, as_string=True):
-        weight_opts = self.get("use_weights", {})
+        weight_opts = self.get("weights_opts", {})
         path = weight_opts.get("path", "")
         if path:
             return path
@@ -60,16 +60,21 @@ class ModelOptions(Options):
         name = weight_opts.get("name", "")
         if name and name != self.model_id:
             # * Load weights from another model
+            # * For that, create a new model options with the new name
             tmp_opts = ModelOptions(self.opts)
-            tmp_opts._model_id = name
+            tmp_opts.model_id = name
+            # * Update options from weight opts
+            # TODO: allow redefining?
+            if "model_dir" in weight_opts:
+                tmp_opts.add_option("model_dir", weight_opts["model_dir"])
             path = tmp_opts.get_weights_path()
             return path
-        epoch = weight_opts.get("epoch", 0)
-        if epoch:
+        from_epoch = weight_opts.get("from_epoch", 0)
+        if from_epoch:
             if version is None:
                 version = weight_opts.get("version", -1)
             path = self.get_intermediate_path(
-                epoch, version=version, as_string=as_string,
+                from_epoch, version=version, as_string=as_string,
             )
         else:
             path = self.results_load_dir / self.model_id
@@ -116,6 +121,7 @@ class ModelOptions(Options):
     @model_id.setter
     def model_id(self, value):
         self._model_id = value
+
     def resolve_id(self, model_id):
         prefixes = self.id_prefixes
         to_replace = re.findall("\\{(.+?)\\}", model_id)
