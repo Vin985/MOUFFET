@@ -94,7 +94,7 @@ class ModelHandler(ABC):
         version = model_opts.load_version
         old_opts = file_utils.load_config(
             Path(model_opts.model_dir)
-            / model_opts["name"]
+            / model_opts.model_id
             / str(version)
             / "network_opts.yaml"
         )
