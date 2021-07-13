@@ -184,9 +184,17 @@ class Evaluator(ModelHandler):
             database, "test", load_opts={"file_types": types}
         )
 
+    def add_global_options(self, opts):
+        if "models_options" in self.opts:
+            opts.add_option("models_options", self.opts["models_options"])
+        if "databases_options" in self.opts:
+            opts.add_option("databases_options", self.opts["databases_options"])
+        return opts
+
     def evaluate_scenario(self, opts):
         db_opts, model_opts, detector_opts = opts
         model_opts = ModelOptions(model_opts)
+        model_opts = self.add_global_options(model_opts)
         database = self.data_handler.duplicate_database(db_opts)
         model_stats = {}
         if database and database.has_type("test"):
