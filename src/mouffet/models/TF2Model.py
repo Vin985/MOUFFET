@@ -3,7 +3,7 @@ from pathlib import Path
 
 import tensorflow as tf
 from tqdm import tqdm
-
+import tensorflow.keras as keras
 from mouffet.utils.common import print_warning
 
 from .dlmodel import DLModel
@@ -72,6 +72,10 @@ class TF2Model(DLModel):
     def init_optimizer(self):
         raise NotImplementedError()
 
+    @abstractmethod
+    def init_model(self):
+        raise NotImplementedError()
+
     def init_training(self):
         """This is a function called at the beginning of the training step. In
         this function you should initialize your train and validation samplers,
@@ -79,8 +83,9 @@ class TF2Model(DLModel):
         validation.
 
         """
-        if not self.model:
-            self.model = self.create_net()
+        self.opts.add_option("training", True)
+
+        self.init_model()
 
         self.init_optimizer()
 
@@ -94,10 +99,8 @@ class TF2Model(DLModel):
 
         train_sampler, validation_sampler = self.init_samplers()
 
-        from_epoch = 0
-        if "use_weights" in self.opts:
-            self.load_weights()
-            from_epoch = self.opts["use_weights"].get("epoch", 0)
+        from_epoch = self.opts.get("from_epoch", 0)
+        #
 
         epoch_save_step = self.opts.get("epoch_save_step", None)
 
@@ -200,12 +203,14 @@ class TF2Model(DLModel):
         self.model.save_weights(path)
 
     def load_weights(self):
-        weight_opts = self.opts.get("use_weights", {})
-        if not weight_opts:
-            print_warning("Warning, no weights found for the current model. Skipping.")
-            return
-        path = self.opts.get_weights_path()
-        self.model.load_weights(path)
+        # training = self.opts.get("training", True)
+        # weight_opts = self.opts.get("use_weights", {})
+        # if training and not weight_opts:
+        #     print_warning(
+        #         "Warning, no training weights found for the current model. Skipping."
+        #     )
+        #     return
+        self.model.load_weights(self.opts.get_weights_path())
 
     @abstractmethod
     def predict(self, x):
