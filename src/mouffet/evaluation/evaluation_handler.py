@@ -7,7 +7,7 @@ import feather
 import pandas as pd
 from mouffet.options.model_options import ModelOptions
 
-from .. import plot
+from ..plotting import plot
 from ..utils import common as common_utils
 from ..utils import file as file_utils
 from ..utils.model_handler import ModelHandler

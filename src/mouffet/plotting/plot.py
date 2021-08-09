@@ -6,7 +6,7 @@ print("import class")
 
 class Plot:
 
-    DEFAULT_PLOTTING_PACKAGE = "plotnine"
+    DEFAULT_PLOTTING_PACKAGE = "mouffet.plotting.plotnine"
 
     def __init__(self) -> None:
         self.pkg = None
@@ -15,17 +15,19 @@ class Plot:
         if options is None:
             options = {}
         try:
-            method = "plot." + options.get(
-                "plotting_method", self.DEFAULT_PLOTTING_PACKAGE
-            )
+            method = options.get("plotting_package", self.DEFAULT_PLOTTING_PACKAGE)
             self.pkg = import_module(method)
         except ImportError:
             print("Error! Package {} was not found".format(method))
 
     def __getattr__(self, name):
-        if self.pkg is None:
-            self.set_plotting_method()
-        return getattr(self.pkg, name)
+        print(name)
+        if not name.startswith("__"):
+            if self.pkg is None:
+                print("setting default plotting method")
+                self.set_plotting_method()
+            return getattr(self.pkg, name)
+        return getattr(super(), name)
 
 
 sys.modules[__name__] = Plot()

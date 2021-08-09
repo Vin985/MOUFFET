@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import pandas as pd
 
 from ..utils.common import deep_dict_update, expand_options_dict, listdict2dictlist
-from .. import plot
+from ..plotting import plot
 
 
 class Evaluator(ABC):
@@ -51,7 +51,7 @@ class Evaluator(ABC):
         res["stats"] = pd.concat(res["stats"])
         res["plots"] = listdict2dictlist(res.get("plots", []))
         if options.get("draw_plots", True):
-            res = plot.plot_PR_curve(res, options)
+            res = plot.plot_PR_curve(res, options)  # pylint: disable=no-member
         return res
 
     def draw_plots(self, options, **kwargs):
