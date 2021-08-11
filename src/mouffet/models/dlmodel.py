@@ -34,7 +34,7 @@ class DLModel(Model):
 
     @abstractmethod
     def train(self, training_data, validation_data):
-        """Function call by the trainer to train the model
+        """Function call by the training handler to train the model
 
         Args:
             training_data (Object): The training data containing raw data and ground truth
