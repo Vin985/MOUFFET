@@ -13,10 +13,6 @@ class Evaluator(ABC):
         "values": {"start": 0, "end": 1, "step": 0.05},
     }
 
-    @abstractmethod
-    def get_events(self, predictions, options, *args, **kwargs):
-        pass
-
     def run_evaluation(self, predictions, tags, options):
         if options.get("do_PR_curve", False):
             return self.get_PR_curve(predictions, tags, options)
