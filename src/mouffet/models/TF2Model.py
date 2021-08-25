@@ -3,8 +3,8 @@ from pathlib import Path
 
 import tensorflow as tf
 from tqdm import tqdm
-import tensorflow.keras as keras
-from mouffet.utils.common import print_warning
+
+import mouffet.utils.common as common_utils
 
 from .dlmodel import DLModel
 
@@ -69,7 +69,7 @@ class TF2Model(DLModel):
         raise NotImplementedError()
 
     @abstractmethod
-    def init_optimizer(self):
+    def init_optimizer(self, learning_rate):
         raise NotImplementedError()
 
     @abstractmethod
@@ -87,9 +87,39 @@ class TF2Model(DLModel):
 
         self.init_model()
 
-        self.init_optimizer()
-
         self.init_metrics()
+
+    def run_epoch(
+        self,
+        epoch,
+        training_data,
+        validation_data,
+        training_sampler,
+        validation_sampler,
+        epoch_save_step=None,
+    ):
+        # * Reset the metrics at the start of the next epoch
+        self.reset_states()
+
+        self.run_step("train", training_data, epoch, training_sampler)
+        self.run_step("validation", validation_data, epoch, validation_sampler)
+
+        template = (
+            "Epoch {}, Loss: {}, Accuracy: {},"
+            " Validation Loss: {}, Validation Accuracy: {}"
+        )
+        print(
+            template.format(
+                epoch,
+                self.metrics["train_loss"].result(),
+                self.metrics["train_accuracy"].result() * 100,
+                self.metrics["validation_loss"].result(),
+                self.metrics["validation_accuracy"].result() * 100,
+            )
+        )
+
+        if epoch_save_step is not None and epoch % epoch_save_step == 0:
+            self.save_model(self.opts.get_intermediate_path(epoch))
 
     def train(self, training_data, validation_data):
 
@@ -97,45 +127,93 @@ class TF2Model(DLModel):
 
         print("Training model", self.opts.model_id)
 
-        train_sampler, validation_sampler = self.init_samplers()
-
-        from_epoch = self.opts.get("from_epoch", 0)
-        #
+        training_sampler, validation_sampler = self.init_samplers()
 
         epoch_save_step = self.opts.get("epoch_save_step", None)
 
         # * Create logging writers
         self.create_writers()
 
-        # tf.profiler.experimental.start(
-        #     str(Path(self.opts["logs"]["log_dir"]) / self.opts.model_id)
-        # )
+        set_lr = 0
 
-        for epoch in range(from_epoch + 1, self.opts["max_epochs"] + 1):
-            # * Reset the metrics at the start of the next epoch
-            self.reset_states()
+        n_epochs = self.opts["n_epochs"]
+        learning_rates = self.opts["learning_rate"]
+        from_epoch = self.opts.get("from_epoch", 0)
+        epoch_start = 0
+        epoch_end = 0
+        epoch_batch = 0
 
-            self.run_step("train", training_data, epoch, train_sampler)
-            self.run_step("validation", validation_data, epoch, validation_sampler)
+        # * Convert number of epochs to list for iteration
+        if not isinstance(n_epochs, list):
+            n_epochs = [n_epochs]
 
-            template = (
-                "Epoch {}, Loss: {}, Accuracy: {},"
-                " Validation Loss: {}, Validation Accuracy: {}"
-            )
-            print(
-                template.format(
-                    epoch,
-                    self.metrics["train_loss"].result(),
-                    self.metrics["train_accuracy"].result() * 100,
-                    self.metrics["validation_loss"].result(),
-                    self.metrics["validation_accuracy"].result() * 100,
+        # * Convert learning rates to list
+        if not isinstance(learning_rates, list):
+            learning_rates = [learning_rates] * len(n_epochs)
+        elif len(learning_rates) < len(n_epochs):
+            # * Reuse the last value for all missing epochs
+            common_utils.print_warning(
+                (
+                    "Smaller number of learning rates then epochs found."
+                    + " Reusing the last value for the learning rate for all missing epochs."
                 )
             )
+            learning_rates = learning_rates + learning_rates[-1:] * (
+                len(n_epochs) - len(learning_rates)
+            )
 
-            if epoch_save_step is not None and epoch % epoch_save_step == 0:
-                self.save_model(self.opts.get_intermediate_path(epoch))
-        # tf.profiler.experimental.stop()
-        self.save_model()
+        epoch_batch = len(n_epochs)
+
+        batch_starts = [1]
+
+        start_idx = 0
+        # * Get epoch batch index if it we resume training from a specific epoch
+        if from_epoch:
+            epoch_count = 0
+            for i, batch_len in enumerate(n_epochs):
+                epoch_count += batch_len
+                if from_epoch <= epoch_count:
+                    start_idx = i
+                    break
+                # if len(batch_starts) < len(n_epochs):
+                # batch_starts.append(batch_starts[i] + batch_len)
+
+        # * Iterate over all batches
+        current_batch = start_idx
+        current_epoch = from_epoch if from_epoch else 1
+        for batch in n_epochs[current_batch:]:
+            lr = learning_rates[current_batch]
+            current_batch += 1
+
+            print(
+                "current batch",
+                current_batch,
+                "learning_rate: ",
+                lr,
+                "from_epoch:",
+                from_epoch,
+            )
+
+            pass
+
+        # TODO: Iterate over each epoch epoch_batch
+        # TODO: use new learning rates
+        # TODO: use fine tuning
+
+        # for epoch in range(from_epoch + 1, self.opts["n_epochs"] + 1):
+
+        #     self.init_optimizer(self.opts["learning_rate"])
+
+        #     self.run_epoch(
+        #         epoch,
+        #         training_data,
+        #         validation_data,
+        #         training_sampler,
+        #         validation_sampler,
+        #         epoch_save_step,
+        #     )
+
+        # self.save_model()
 
     def create_writers(self):
         log_dir = Path(self.opts.logs["log_dir"]) / (
@@ -156,38 +234,10 @@ class TF2Model(DLModel):
             self.metrics[x + "_accuracy"].reset_states()
 
     def run_step(self, step_type, data, step, sampler):
-        # i = 0
-        # import skimage.io
-        # import numpy as np
-        # import librosa
-        # from datetime import datetime
-
-        # def scale_minmax(X, min=0.0, max=1.0):
-        #     X_std = (X - X.min()) / (X.max() - X.min())
-        #     X_scaled = X_std * (max - min) + min
-        #     return X_scaled
-        # filename = datetime.now().strftime("%Y%m%d") + "_{}.png"
-
         for data, labels in tqdm(
             sampler(self.get_raw_data(data), self.get_ground_truth(data))
         ):
 
-            # mels = librosa.amplitude_to_db(np.abs(data[0]), ref=np.max)
-            # # mels = np.log(data[0] + 1e-9)  # add small number to avoid log(0)
-
-            # # min-max scale to fit inside 8-bit range
-            # img = scale_minmax(mels, 0, 255).astype(np.uint8)
-            # img = np.flip(img, axis=0)  # put low frequencies at the bottom in image
-            # img = 255 - img  # invert. make black==more energy
-
-            # # save as PNG
-            # skimage.io.imsave(
-            #     self.opts.model_dir / "../images" / filename.format(i), img
-            # )
-
-            # if i == 1:
-            #     break
-            # i += 1
             getattr(self, step_type + "_step")(data, labels)
         with self.summary_writer[step_type].as_default():
             tf.summary.scalar(
@@ -203,13 +253,6 @@ class TF2Model(DLModel):
         self.model.save_weights(path)
 
     def load_weights(self):
-        # training = self.opts.get("training", True)
-        # weight_opts = self.opts.get("use_weights", {})
-        # if training and not weight_opts:
-        #     print_warning(
-        #         "Warning, no training weights found for the current model. Skipping."
-        #     )
-        #     return
         self.model.load_weights(self.opts.get_weights_path())
 
     @abstractmethod
