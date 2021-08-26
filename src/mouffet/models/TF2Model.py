@@ -134,14 +134,9 @@ class TF2Model(DLModel):
         # * Create logging writers
         self.create_writers()
 
-        set_lr = 0
-
         n_epochs = self.opts["n_epochs"]
         learning_rates = self.opts["learning_rate"]
         from_epoch = self.opts.get("from_epoch", 0)
-        epoch_start = 0
-        epoch_end = 0
-        epoch_batch = 0
 
         # * Convert number of epochs to list for iteration
         if not isinstance(n_epochs, list):
@@ -162,58 +157,50 @@ class TF2Model(DLModel):
                 len(n_epochs) - len(learning_rates)
             )
 
-        epoch_batch = len(n_epochs)
-
         batch_starts = [1]
 
-        start_idx = 0
+        start_idx = -1
         # * Get epoch batch index if it we resume training from a specific epoch
         if from_epoch:
             epoch_count = 0
             for i, batch_len in enumerate(n_epochs):
                 epoch_count += batch_len
-                if from_epoch <= epoch_count:
+                if from_epoch <= epoch_count and start_idx < 0:
                     start_idx = i
-                    break
-                # if len(batch_starts) < len(n_epochs):
-                # batch_starts.append(batch_starts[i] + batch_len)
+                if len(batch_starts) < len(n_epochs):
+                    batch_starts.append(batch_starts[i] + batch_len)
+
+        start_idx = start_idx if start_idx >= 0 else 0
 
         # * Iterate over all batches
         current_batch = start_idx
-        current_epoch = from_epoch if from_epoch else 1
         for batch in n_epochs[current_batch:]:
+            # * Get learning rate for the current batch
             lr = learning_rates[current_batch]
+            # * Get the real start of the batch if from_epoch is specified
+            batch_start = max(batch_starts[current_batch], from_epoch)
+            # * Get the length of the batch for the loop
+            batch_end = batch_starts[current_batch] + batch
             current_batch += 1
 
-            print(
-                "current batch",
-                current_batch,
-                "learning_rate: ",
-                lr,
-                "from_epoch:",
-                from_epoch,
+            common_utils.print_info(
+                (
+                    "Starting new batch of epochs from epoch number {}, with learning rate {} for {} iterations"
+                ).format(batch_start, lr, batch_end - batch_start)
             )
 
-            pass
+            self.init_optimizer(learning_rate=lr)
+            for epoch in range(batch_start, batch_end):
+                self.run_epoch(
+                    epoch,
+                    training_data,
+                    validation_data,
+                    training_sampler,
+                    validation_sampler,
+                    epoch_save_step,
+                )
 
-        # TODO: Iterate over each epoch epoch_batch
-        # TODO: use new learning rates
-        # TODO: use fine tuning
-
-        # for epoch in range(from_epoch + 1, self.opts["n_epochs"] + 1):
-
-        #     self.init_optimizer(self.opts["learning_rate"])
-
-        #     self.run_epoch(
-        #         epoch,
-        #         training_data,
-        #         validation_data,
-        #         training_sampler,
-        #         validation_sampler,
-        #         epoch_save_step,
-        #     )
-
-        # self.save_model()
+        self.save_model()
 
     def create_writers(self):
         log_dir = Path(self.opts.logs["log_dir"]) / (
