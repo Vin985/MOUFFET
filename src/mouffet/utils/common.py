@@ -41,6 +41,10 @@ def print_title(msg):
     return print_color(msg, "lightgreen")
 
 
+def print_info(msg):
+    return print_color(msg, "yellow")
+
+
 def deep_dict_update(original, update, copy=False, replace=True, except_keys=None):
     """Recursively update a dict.
 
