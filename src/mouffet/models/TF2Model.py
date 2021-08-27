@@ -131,6 +131,8 @@ class TF2Model(DLModel):
 
         epoch_save_step = self.opts.get("epoch_save_step", None)
 
+        epoch_batches = []
+
         # * Create logging writers
         self.create_writers()
 
@@ -142,10 +144,50 @@ class TF2Model(DLModel):
         if not isinstance(n_epochs, list):
             n_epochs = [n_epochs]
 
-        # * Convert learning rates to list
         if not isinstance(learning_rates, list):
             learning_rates = [learning_rates] * len(n_epochs)
-        elif len(learning_rates) < len(n_epochs):
+
+        epoch_count = 0
+        from_epoch_met = False
+        next_batch_start = 1
+        epoch_batches = []
+        for i, batch_len in enumerate(n_epochs):
+
+            # * From epoch greater than total count: skip batch
+            epoch_count += batch_len
+            if from_epoch > epoch_count:
+                continue
+
+            batch = {}
+
+            if from_epoch and not from_epoch_met:
+                batch["start"] = from_epoch
+                from_epoch_met = True
+            else:
+                batch["start"] = next_batch_start
+
+            next_batch_start += batch_len
+
+            batch["end"] = epoch_count
+            batch["length"] = batch["end"] - batch["start"] + 1
+
+            if i >= len(learning_rates):
+                batch["learning_rate"] = learning_rates[-1]
+            else:
+                batch["learning_rate"] = learning_rates[i]
+
+            epoch_batches.append(batch)
+
+        if self.opts.get("transfer_learning", False):
+            fine_tuning = self.opts.get("fine_tuning", {})
+            if fine_tuning:
+                pass
+
+        print(epoch_batches)
+
+        # * Convert learning rates to list
+
+        if len(learning_rates) < len(n_epochs):
             # * Reuse the last value for all missing epochs
             common_utils.print_warning(
                 (
@@ -189,18 +231,18 @@ class TF2Model(DLModel):
                 ).format(batch_start, lr, batch_end - batch_start)
             )
 
-            self.init_optimizer(learning_rate=lr)
-            for epoch in range(batch_start, batch_end):
-                self.run_epoch(
-                    epoch,
-                    training_data,
-                    validation_data,
-                    training_sampler,
-                    validation_sampler,
-                    epoch_save_step,
-                )
+        #     self.init_optimizer(learning_rate=lr)
+        #     for epoch in range(batch_start, batch_end):
+        #         self.run_epoch(
+        #             epoch,
+        #             training_data,
+        #             validation_data,
+        #             training_sampler,
+        #             validation_sampler,
+        #             epoch_save_step,
+        #         )
 
-        self.save_model()
+        # self.save_model()
 
     def create_writers(self):
         log_dir = Path(self.opts.logs["log_dir"]) / (
