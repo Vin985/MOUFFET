@@ -121,21 +121,7 @@ class TF2Model(DLModel):
         if epoch_save_step is not None and epoch % epoch_save_step == 0:
             self.save_model(self.opts.get_intermediate_path(epoch))
 
-    def train(self, training_data, validation_data):
-
-        self.init_training()
-
-        print("Training model", self.opts.model_id)
-
-        training_sampler, validation_sampler = self.init_samplers()
-
-        epoch_save_step = self.opts.get("epoch_save_step", None)
-
-        epoch_batches = []
-
-        # * Create logging writers
-        self.create_writers()
-
+    def get_epoch_batches(self):
         n_epochs = self.opts["n_epochs"]
         learning_rates = self.opts["learning_rate"]
         from_epoch = self.opts.get("from_epoch", 0)
@@ -179,60 +165,65 @@ class TF2Model(DLModel):
             epoch_batches.append(batch)
 
         if self.opts.get("transfer_learning", False):
+            print("doing tl")
             fine_tuning = self.opts.get("fine_tuning", {})
+            print(fine_tuning)
             if fine_tuning:
-                pass
+                batch = {}
+                batch_len = fine_tuning.get("n_epochs", 0)
+                lr = fine_tuning.get("learning_rate", 0)
+                if not batch_len:
+                    common_utils.print_warning(
+                        "n_epochs option is not specified for fine tuning. Cannot proceed."
+                    )
+                elif not lr:
+                    common_utils.print_warning(
+                        "learning_rate option is not specified for fine tuning. Cannot proceed."
+                    )
+                else:
+                    batch["start"] = epoch_count + 1
+                    epoch_count += batch_len
+                    batch["end"] = epoch_count
+                    batch["learning_rate"] = lr
+                    batch["length"] = batch["end"] - batch["start"] + 1
+                    batch["fine_tuning"] = True
+                    epoch_batches.append(batch)
+        return epoch_batches
+
+    def train(self, training_data, validation_data):
+
+        self.init_training()
+
+        print("Training model", self.opts.model_id)
+
+        training_sampler, validation_sampler = self.init_samplers()
+
+        epoch_save_step = self.opts.get("epoch_save_step", None)
+
+        epoch_batches = []
+
+        # * Create logging writers
+        self.create_writers()
+
+        epoch_batches = self.get_epoch_batches()
 
         print(epoch_batches)
 
-        # * Convert learning rates to list
-
-        if len(learning_rates) < len(n_epochs):
-            # * Reuse the last value for all missing epochs
-            common_utils.print_warning(
-                (
-                    "Smaller number of learning rates then epochs found."
-                    + " Reusing the last value for the learning rate for all missing epochs."
-                )
-            )
-            learning_rates = learning_rates + learning_rates[-1:] * (
-                len(n_epochs) - len(learning_rates)
-            )
-
-        batch_starts = [1]
-
-        start_idx = -1
-        # * Get epoch batch index if it we resume training from a specific epoch
-        if from_epoch:
-            epoch_count = 0
-            for i, batch_len in enumerate(n_epochs):
-                epoch_count += batch_len
-                if from_epoch <= epoch_count and start_idx < 0:
-                    start_idx = i
-                if len(batch_starts) < len(n_epochs):
-                    batch_starts.append(batch_starts[i] + batch_len)
-
-        start_idx = start_idx if start_idx >= 0 else 0
-
-        # * Iterate over all batches
-        current_batch = start_idx
-        for batch in n_epochs[current_batch:]:
-            # * Get learning rate for the current batch
-            lr = learning_rates[current_batch]
-            # * Get the real start of the batch if from_epoch is specified
-            batch_start = max(batch_starts[current_batch], from_epoch)
-            # * Get the length of the batch for the loop
-            batch_end = batch_starts[current_batch] + batch
-            current_batch += 1
+        for batch in epoch_batches:
+            lr = batch["learning_rate"]
 
             common_utils.print_info(
                 (
                     "Starting new batch of epochs from epoch number {}, with learning rate {} for {} iterations"
-                ).format(batch_start, lr, batch_end - batch_start)
+                ).format(batch["start"], lr, batch["length"])
             )
 
-        #     self.init_optimizer(learning_rate=lr)
-        #     for epoch in range(batch_start, batch_end):
+            if batch.get("fine_tuning", False):
+                print("Doing fine_tuning")
+
+            self.init_optimizer(learning_rate=lr)
+            for epoch in range(batch["start"], batch["end"] + 1):
+                print("Running epoch ", epoch)
         #         self.run_epoch(
         #             epoch,
         #             training_data,
