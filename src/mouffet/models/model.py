@@ -4,10 +4,6 @@ import yaml
 
 from ..utils import file as file_utils
 
-DEFAULT_N_FFT = 2048
-DEFAULT_HOP_LENGTH = 1024  # 512
-DEFAULT_N_MELS = 32  # 128
-
 
 class Model(ABC):
     """Base abstract class for defining models. Must be subclassed.
@@ -32,8 +28,7 @@ class Model(ABC):
 
     @property
     def opts(self):
-        """Property that contains the options related to the model as read in the configuration file
-        """
+        """Property that contains the options related to the model as read in the configuration file"""
         return self._opts
 
     @opts.setter
@@ -150,4 +145,3 @@ class Model(ABC):
         file_utils.ensure_path_exists(self.opts.results_save_dir)
         with open(self.opts.results_save_dir / file_name, "w") as f:
             yaml.dump(options, f, default_flow_style=False)
-

@@ -2,14 +2,9 @@ from abc import abstractmethod
 
 from .model import Model
 
-DEFAULT_N_FFT = 2048
-DEFAULT_HOP_LENGTH = 1024  # 512
-DEFAULT_N_MELS = 32  # 128
-
 
 class DLModel(Model):
-    """Subclass of mouffet.models.model.Model for deep learning models
-    """
+    """Subclass of mouffet.models.model.Model for deep learning models"""
 
     NAME = "DLMODEL"
 
