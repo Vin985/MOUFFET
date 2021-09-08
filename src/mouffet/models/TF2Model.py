@@ -121,75 +121,6 @@ class TF2Model(DLModel):
         if epoch_save_step is not None and epoch % epoch_save_step == 0:
             self.save_model(self.opts.get_intermediate_path(epoch))
 
-    def get_epoch_batches(self):
-        n_epochs = self.opts["n_epochs"]
-        learning_rates = self.opts["learning_rate"]
-        from_epoch = self.opts.get("from_epoch", 0)
-
-        # * Convert number of epochs to list for iteration
-        if not isinstance(n_epochs, list):
-            n_epochs = [n_epochs]
-
-        if not isinstance(learning_rates, list):
-            learning_rates = [learning_rates] * len(n_epochs)
-
-        epoch_count = 0
-        from_epoch_met = False
-        next_batch_start = 1
-        epoch_batches = []
-        for i, batch_len in enumerate(n_epochs):
-
-            # * From epoch greater than total count: skip batch
-            epoch_count += batch_len
-            if from_epoch > epoch_count:
-                continue
-
-            batch = {}
-
-            if from_epoch and not from_epoch_met:
-                batch["start"] = from_epoch
-                from_epoch_met = True
-            else:
-                batch["start"] = next_batch_start
-
-            next_batch_start += batch_len
-
-            batch["end"] = epoch_count
-            batch["length"] = batch["end"] - batch["start"] + 1
-
-            if i >= len(learning_rates):
-                batch["learning_rate"] = learning_rates[-1]
-            else:
-                batch["learning_rate"] = learning_rates[i]
-
-            epoch_batches.append(batch)
-
-        if self.opts.get("transfer_learning", False):
-            print("doing tl")
-            fine_tuning = self.opts.get("fine_tuning", {})
-            print(fine_tuning)
-            if fine_tuning:
-                batch = {}
-                batch_len = fine_tuning.get("n_epochs", 0)
-                lr = fine_tuning.get("learning_rate", 0)
-                if not batch_len:
-                    common_utils.print_warning(
-                        "n_epochs option is not specified for fine tuning. Cannot proceed."
-                    )
-                elif not lr:
-                    common_utils.print_warning(
-                        "learning_rate option is not specified for fine tuning. Cannot proceed."
-                    )
-                else:
-                    batch["start"] = epoch_count + 1
-                    epoch_count += batch_len
-                    batch["end"] = epoch_count
-                    batch["learning_rate"] = lr
-                    batch["length"] = batch["end"] - batch["start"] + 1
-                    batch["fine_tuning"] = True
-                    epoch_batches.append(batch)
-        return epoch_batches
-
     def train(self, training_data, validation_data):
 
         self.init_training()
@@ -220,20 +151,21 @@ class TF2Model(DLModel):
 
             if batch.get("fine_tuning", False):
                 print("Doing fine_tuning")
+                self.set_fine_tuning()
 
             self.init_optimizer(learning_rate=lr)
             for epoch in range(batch["start"], batch["end"] + 1):
                 print("Running epoch ", epoch)
-        #         self.run_epoch(
-        #             epoch,
-        #             training_data,
-        #             validation_data,
-        #             training_sampler,
-        #             validation_sampler,
-        #             epoch_save_step,
-        #         )
+                self.run_epoch(
+                    epoch,
+                    training_data,
+                    validation_data,
+                    training_sampler,
+                    validation_sampler,
+                    epoch_save_step,
+                )
 
-        # self.save_model()
+        self.save_model()
 
     def create_writers(self):
         log_dir = Path(self.opts.logs["log_dir"]) / (

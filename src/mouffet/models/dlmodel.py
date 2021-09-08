@@ -1,4 +1,7 @@
 from abc import abstractmethod
+import logging
+
+import mouffet.utils.common as common_utils
 
 from .model import Model
 
@@ -67,8 +70,7 @@ class DLModel(Model):
         )
 
     def save_params(self):
-        """Save network options
-        """
+        """Save network options"""
         self.save_options("network_opts.yaml", self.opts.opts)
 
     def save_model(self, path=None):
@@ -81,3 +83,74 @@ class DLModel(Model):
         """
         self.save_params()
         self.save_weights(path)
+
+    def get_epoch_batches(self):
+        n_epochs = self.opts["n_epochs"]
+        learning_rates = self.opts["learning_rate"]
+        from_epoch = self.opts.get("from_epoch", 0)
+
+        # * Convert number of epochs to list for iteration
+        if not isinstance(n_epochs, list):
+            n_epochs = [n_epochs]
+
+        if not isinstance(learning_rates, list):
+            learning_rates = [learning_rates] * len(n_epochs)
+
+        epoch_count = 0
+        from_epoch_met = False
+        next_batch_start = 1
+        epoch_batches = []
+        for i, batch_len in enumerate(n_epochs):
+
+            # * From epoch greater than total count: skip batch
+            epoch_count += batch_len
+            if from_epoch > epoch_count:
+                continue
+
+            batch = {}
+
+            if from_epoch and not from_epoch_met:
+                batch["start"] = from_epoch
+                from_epoch_met = True
+            else:
+                batch["start"] = next_batch_start
+
+            next_batch_start += batch_len
+
+            batch["end"] = epoch_count
+            batch["length"] = batch["end"] - batch["start"] + 1
+
+            if i >= len(learning_rates):
+                batch["learning_rate"] = learning_rates[-1]
+            else:
+                batch["learning_rate"] = learning_rates[i]
+
+            epoch_batches.append(batch)
+
+        if self.opts.get("transfer_learning", False):
+            logging.debug("Performing transfer learning, retrieving additional batches")
+            fine_tuning = self.opts.get("fine_tuning", {})
+            if fine_tuning:
+                batch = {}
+                batch_len = fine_tuning.get("n_epochs", 0)
+                lr = fine_tuning.get("learning_rate", 0)
+                if not batch_len:
+                    common_utils.print_warning(
+                        "n_epochs option is not specified for fine tuning. Cannot proceed."
+                    )
+                elif not lr:
+                    common_utils.print_warning(
+                        "learning_rate option is not specified for fine tuning. Cannot proceed."
+                    )
+                else:
+                    batch["start"] = epoch_count + 1
+                    epoch_count += batch_len
+                    batch["end"] = epoch_count
+                    batch["learning_rate"] = lr
+                    batch["length"] = batch["end"] - batch["start"] + 1
+                    batch["fine_tuning"] = True
+                    epoch_batches.append(batch)
+        return epoch_batches
+
+    def set_fine_tuning(self):
+        pass
