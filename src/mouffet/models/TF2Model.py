@@ -152,6 +152,7 @@ class TF2Model(DLModel):
             if batch.get("fine_tuning", False):
                 print("Doing fine_tuning")
                 self.set_fine_tuning()
+                self.model.summary()
 
             self.init_optimizer(learning_rate=lr)
             for epoch in range(batch["start"], batch["end"] + 1):
