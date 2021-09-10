@@ -74,7 +74,9 @@ class ModelOptions(Options):
             if version is None:
                 version = weight_opts.get("version", -1)
             path = self.get_intermediate_path(
-                from_epoch, version=version, as_string=as_string,
+                from_epoch,
+                version=version,
+                as_string=as_string,
             )
         else:
             path = self.results_load_dir / self.model_id
@@ -154,7 +156,7 @@ class ModelOptions(Options):
     #     return self._version
 
     def get_last_version(self):
-        version = 1
+        version = 0
         path = self.results_dir_root
         if path.exists():
             for item in path.iterdir():
