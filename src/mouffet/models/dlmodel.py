@@ -10,6 +10,7 @@ class DLModel(Model):
     """Subclass of mouffet.models.model.Model for deep learning models"""
 
     NAME = "DLMODEL"
+    NETWORK_OPTION_FILENAME = "network_opts.yaml"
 
     @abstractmethod
     def create_model(self):
@@ -71,7 +72,7 @@ class DLModel(Model):
 
     def save_params(self):
         """Save network options"""
-        self.save_options("network_opts.yaml", self.opts.opts)
+        self.save_options(self.NETWORK_OPTION_FILENAME, self.opts.opts)
 
     def save_model(self, path=None):
         """Default implementation for deep learning model saving.
