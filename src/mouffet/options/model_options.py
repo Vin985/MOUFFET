@@ -1,4 +1,5 @@
 import re
+import shutil
 
 from .options import Options
 from ..utils import common as common_utils
@@ -162,6 +163,17 @@ class ModelOptions(Options):
             for item in path.iterdir():
                 if item.is_dir():
                     try:
+                        # TODO: check if empty (or only databases)
+                        if self.get("clean_empty_models", False):
+                            is_empty = len(list(item.iterdir())) <= 1
+                            if is_empty:
+                                common_utils.print_info(
+                                    "Found empty directory {} and clean_empty_models is True. Removing folder".format(
+                                        item
+                                    )
+                                )
+                                shutil.rmtree(item)
+                                continue
                         res = int(item.name)
                         if res >= version:
                             version = res
