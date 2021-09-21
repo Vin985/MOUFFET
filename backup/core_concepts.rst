@@ -26,8 +26,8 @@ id
 Evaluators
 ----------
 
-    Detectors
-    ---------
+Detectors
+---------
 
 Scenarios
 ---------

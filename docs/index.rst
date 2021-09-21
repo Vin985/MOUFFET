@@ -31,11 +31,11 @@ and model framework agnostic. This means that several models created with differ
 (e.g. tensorflow, pytorch, etc.) could be trained and compared when encapsulated with mouffet.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Getting started:
 
-   install
-   core_concepts
+   test_api
+
 
 
 

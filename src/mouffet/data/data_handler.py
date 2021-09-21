@@ -72,7 +72,7 @@ class DataHandler(ABC):
     def update_database(self, new_opts=None, name="", copy=True):
         """Updates a database with the options contained in new_opts.
         If 'name' is not provided, this function tries to get the name of the database to update
-        from the 'name' key in new_opts. 
+        from the 'name' key in new_opts.
 
         Args:
             new_opts (dict, optional): A dictionary containing the new value to update.
@@ -350,7 +350,7 @@ class DataHandler(ABC):
                     feather.write_dataframe(value, path)
 
     def finalize_dataset(self):
-        """ Callback function called after data generation is finished but before it is saved
+        """Callback function called after data generation is finished but before it is saved
         in case some further action must be done after all files are loaded
         (e.g. dataframe concatenation)
         """
@@ -527,4 +527,3 @@ class DataHandler(ABC):
                 res[database["name"]][db_type] = summary
 
         return res
-
