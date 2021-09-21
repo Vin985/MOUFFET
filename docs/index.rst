@@ -1,8 +1,3 @@
-.. Mouffet documentation master file, created by
-   sphinx-quickstart on Thu Dec 17 13:09:32 2020.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 ********
 Mouffet
 ********
@@ -34,7 +29,23 @@ and model framework agnostic. This means that several models created with differ
    :maxdepth: 1
    :caption: Getting started:
 
-   test_api
+   install
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Core concepts
+
+   scenarios
+   handlers
+
+.. toctree::
+   :maxdepth: 2
+   :caption: API Documentation
+
+   api/data
+   api/training
+   api/evaluation
+   api/test_api
 
 
 
