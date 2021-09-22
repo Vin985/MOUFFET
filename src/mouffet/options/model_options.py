@@ -91,11 +91,11 @@ class ModelOptions(Options):
         Args:
             epoch (int): The epoch for which the weights are saved
             version (int, optional): An optional version number to provide. If None,
-            use current version number (for saving). If provided and positive, use that
-            version number. If provided and negative, use the previous version number.
-            Defaults to None.
+                the current version number for saving will be used. If version is provided and
+                positive, that number will be used. If it is negative, the previous version number
+                will be used (whatever the value provided). Defaults to None.
             as_string (bool, optional): Returns the result as a string instead of a pathlib.Path.
-            Defaults to True.
+                Defaults to True.
 
         Returns:
             [type]: [description]
