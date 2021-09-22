@@ -3,13 +3,8 @@ Installation instructions
 
 
 Installing python
-====================
+=================
 
-test
-^^^^
-
-toto
-****
 
 If you do not already have one, first install a python version on your computer. A python 3 version is required.
 We recommend downloading the latest miniconda version that can be found here:
@@ -43,7 +38,8 @@ to let python know where to install our packages
     mouffet_env/Scripts/activate            # This should be the path on Windows
     mouffet_env/bin/activate                # This should work on Linux and Mac
 
-## Installing the dependencies
+Installing the dependencies
+===========================
 
 Now we need to install the dependencies. To do so we will install them using the pip package manager that comes with python.
 If this is the first time you use python, you will probably need to update pip. For that, type in you terminal:
