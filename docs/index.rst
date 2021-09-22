@@ -45,7 +45,8 @@ and model framework agnostic. This means that several models created with differ
    api/data
    api/training
    api/evaluation
-   api/test_api
+   api/models
+   api/options
 
 
 

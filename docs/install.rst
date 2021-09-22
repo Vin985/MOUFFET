@@ -44,8 +44,8 @@ to let python know where to install our packages
 
 .. code-block:: bash
 
-    mouffet_env/Scripts/activate            # This should be the path on Windows
-    mouffet_env/bin/activate                # This should work on Linux and Mac
+    > mouffet_env/Scripts/activate            # This should be the path on Windows
+    > mouffet_env/bin/activate                # This should work on Linux and Mac
 
 Installing the dependencies
 ===========================

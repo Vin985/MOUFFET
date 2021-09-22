@@ -1,9 +1,11 @@
 Data
 ====
 
-These are the modules that are used to handle data.
+These are the objects used to handle data.
 
-.. toctree:
-    :maxdepth:
+.. toctree::
+    :maxdepth: 1 
     
-    
+    data/data_handler
+    data/data_structure
+    data/split
