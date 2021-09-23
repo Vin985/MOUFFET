@@ -369,6 +369,8 @@ class DataHandler(ABC):
 
         for file_path in file_list:
             try:
+                if not isinstance(file_path, Path):
+                    file_path = Path(file_path)
                 split = database.get("split", {})
                 if split and db_type in split:
                     tags_dir = paths["tags"]["training"]
