@@ -72,7 +72,6 @@ class TF2Model(DLModel):
     def init_optimizer(self, learning_rate):
         raise NotImplementedError()
 
-    @abstractmethod
     def init_model(self):
         self.model = self.create_model()
         if "weights_opts" in self.opts or self.opts.get("inference", False):
