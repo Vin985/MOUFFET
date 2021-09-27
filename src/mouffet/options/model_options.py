@@ -33,7 +33,11 @@ class ModelOptions(Options):
         return self.get_results_dir(save=False)
 
     def version(self, save=True):
-        return self.opts.get("version", self.previous_version + int(save))
+        default = self.previous_version
+        if save or not default:
+            # * Add one if we are saving or if we are loading and the previous number is 0
+            default += 1
+        return self.opts.get("version", default)
 
     @property
     def previous_version(self):
