@@ -307,7 +307,9 @@ class DataHandler(ABC):
 
         classes_df = pd.read_csv(classes_file, skip_blank_lines=True)
         classes = (
-            classes_df.loc[classes_df.class_type == class_type].tag.str.lower().values
+            classes_df.loc[classes_df["class_type"] == class_type]
+            .tag.str.lower()
+            .values
         )
         return classes
 
