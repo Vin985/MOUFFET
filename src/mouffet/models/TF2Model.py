@@ -74,7 +74,9 @@ class TF2Model(DLModel):
 
     @abstractmethod
     def init_model(self):
-        raise NotImplementedError()
+        self.model = self.create_model()
+        if "weights_opts" in self.opts or self.opts.get("inference", False):
+            self.load_weights()
 
     def init_training(self):
         """This is a function called at the beginning of the training step. In
