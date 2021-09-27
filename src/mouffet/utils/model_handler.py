@@ -106,7 +106,7 @@ class ModelHandler(ABC):
         )
 
         model = cls.get_model_instance(opts)
-        model.load_weights()
+        model.init_model()
         return model
 
     @staticmethod
@@ -137,4 +137,3 @@ class ModelHandler(ABC):
     @abstractmethod
     def load_scenarios(self):
         return []
-
