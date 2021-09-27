@@ -14,7 +14,7 @@ from ..utils.model_handler import ModelHandler
 
 
 class EvaluationHandler(ModelHandler):
-    """ Base class for evaluating models. Inherits ModelHandler
+    """Base class for evaluating models. Inherits ModelHandler
 
     Relevant options:
 
@@ -85,6 +85,7 @@ class EvaluationHandler(ModelHandler):
 
             model_opts.opts["data_config"] = self.opts["data_config"]
             model_opts.opts["model_dir"] = self.get_option("model_dir", model_opts)
+            model_opts.opts["inference"] = True
             model = self.load_model(model_opts)
             predictions = self.classify_test_data(model, database)
             pred_file.parent.mkdir(parents=True, exist_ok=True)
@@ -152,7 +153,12 @@ class EvaluationHandler(ModelHandler):
                     values,
                     res_dir
                     / (
-                        "_".join(filter(None, [prefix, eval_id, "{}.pdf".format(key)],))
+                        "_".join(
+                            filter(
+                                None,
+                                [prefix, eval_id, "{}.pdf".format(key)],
+                            )
+                        )
                     ),
                 )
 
@@ -241,4 +247,3 @@ class EvaluationHandler(ModelHandler):
         if self.opts.get("save_results", True):
             self.save_results(stats)
         return stats
-
