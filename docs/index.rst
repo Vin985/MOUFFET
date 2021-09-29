@@ -48,6 +48,11 @@ and model framework agnostic. This means that several models created with differ
    api/models
    api/options
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Examples
+
+   faq
 
 
 
