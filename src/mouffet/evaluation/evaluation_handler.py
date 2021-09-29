@@ -140,7 +140,7 @@ class EvaluationHandler(ModelHandler):
             ),
         )
 
-        pr_df = res["stats"].loc[res["stats"]["PR_curve"] == True]
+        pr_df = res["stats"].loc[res["stats"]["PR_curve"] is True]
 
         if not pr_df.empty:
             self.save_pr_curve_data(pr_df)
