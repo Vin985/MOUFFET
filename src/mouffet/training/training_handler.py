@@ -26,7 +26,10 @@ class TrainingHandler(ModelHandler):
     def get_scenario_databases_options(self, scenario):
         db_opts = []
         opts_update = scenario.get("databases_options", {})
-        for db_name in scenario["databases"]:
+        databases = scenario.get("databases")
+        if not isinstance(databases, list):
+            databases = [databases]
+        for db_name in databases:
             db_opt = self.data_handler.update_database(opts_update, db_name)
             if db_opt:
                 db_opts.append(db_opt)
