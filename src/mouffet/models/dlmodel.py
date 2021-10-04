@@ -67,7 +67,7 @@ class DLModel(Model):
             NotImplementedError: Class must be inherited
         """
         raise NotImplementedError(
-            "save_weights function not implemented for this class"
+            "load_weights function not implemented for this class"
         )
 
     def save_params(self):
