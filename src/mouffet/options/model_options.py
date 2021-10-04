@@ -1,6 +1,8 @@
 import re
 import shutil
 
+from copy import deepcopy
+
 from .options import Options
 from ..utils import common as common_utils
 
@@ -66,7 +68,7 @@ class ModelOptions(Options):
         if name and name != self.model_id:
             # * Load weights from another model
             # * For that, create a new model options with the new name
-            tmp_opts = ModelOptions(self.opts)
+            tmp_opts = ModelOptions(deepcopy(self.opts))
             tmp_opts.model_id = name
             # * Update options from weight opts
             # TODO: allow redefining?
