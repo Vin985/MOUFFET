@@ -30,9 +30,13 @@ class TF2Model(DLModel):
             with tf.GradientTape() as tape:
                 predictions = self.model(data, training=True)
                 loss = self.tf_loss(labels, predictions)
-            gradients = tape.gradient(loss, self.model.trainable_variables)
+            gradients = tape.gradient(
+                loss, self.model.trainable_variables  # pylint: disable=no-member
+            )  # pylint: disable=no-member
             self.optimizer.apply_gradients(
-                zip(gradients, self.model.trainable_variables)
+                zip(
+                    gradients, self.model.trainable_variables
+                )  # pylint: disable=no-member
             )
         else:
             predictions = self.model(data, training=False)
@@ -153,7 +157,7 @@ class TF2Model(DLModel):
             if batch.get("fine_tuning", False):
                 print("Doing fine_tuning")
                 self.set_fine_tuning()
-                self.model.summary()
+                self.model.summary()  # pylint: disable=no-member
 
             self.init_optimizer(learning_rate=lr)
             for epoch in range(batch["start"], batch["end"] + 1):
@@ -204,10 +208,12 @@ class TF2Model(DLModel):
     def save_weights(self, path=None):
         if not path:
             path = str(self.opts.results_save_dir / self.opts.model_id)
-        self.model.save_weights(path)
+        self.model.save_weights(path)  # pylint: disable=no-member
 
     def load_weights(self):
-        self.model.load_weights(self.opts.get_weights_path())
+        self.model.load_weights(  # pylint: disable=no-member
+            self.opts.get_weights_path()
+        )
 
     @abstractmethod
     def predict(self, x):
