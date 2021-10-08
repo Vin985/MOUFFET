@@ -15,7 +15,7 @@ class DatabaseOptions(Options):
         "recursive": False,
         "save_intermediates": False,
         "tags_suffix": "-sceneRect.csv",
-        "use_subfolders": None,
+        "subfolders": None,
     }
 
     @property

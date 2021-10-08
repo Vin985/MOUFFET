@@ -133,18 +133,18 @@ class DataHandler(ABC):
             pathlib.Path: a Path
         """
         res = Path("")
-        subfolders = database.use_subfolders
+        subfolders = database.subfolders
         if subfolders:
             if isinstance(subfolders, str):
-                subfolders = [subfolders]
-            for subfolder_type in subfolders:
-                func_name = "_".join(["get", subfolder_type, "subfolder_path"])
+                subfolders = [{"type": subfolders}]
+            for subfolder in subfolders:
+                func_name = "_".join(["get", subfolder["type"], "subfolder_path"])
                 if hasattr(self, func_name) and callable(getattr(self, func_name)):
-                    res /= getattr(self, func_name)(database)
+                    res /= getattr(self, func_name)(database, subfolder)
                 else:
                     print(
                         "Warning! No function found for getting the subfolder path for the '"
-                        + subfolder_type
+                        + subfolder
                         + "' option. Check if this is the correct value in the "
                         + "'use_subfolders' option or create a '"
                         + func_name
