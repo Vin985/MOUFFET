@@ -19,7 +19,6 @@ class Plot:
             print("Error! Package {} was not found".format(method))
 
     def __getattr__(self, name):
-        print(name)
         if not name.startswith("__"):
             if self.pkg is None:
                 print("setting default plotting method")

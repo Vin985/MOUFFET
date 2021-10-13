@@ -143,8 +143,6 @@ class TF2Model(DLModel):
 
         epoch_batches = self.get_epoch_batches()
 
-        print(epoch_batches)
-
         for batch in epoch_batches:
             lr = batch["learning_rate"]
 

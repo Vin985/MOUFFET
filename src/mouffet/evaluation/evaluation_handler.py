@@ -122,7 +122,6 @@ class EvaluationHandler(ModelHandler):
         else:
             res = pr_df
 
-        print(res)
         res.reset_index(inplace=True, drop=True)
         res.to_feather(pr_file)
 

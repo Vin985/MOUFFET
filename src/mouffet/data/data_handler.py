@@ -349,7 +349,6 @@ class DataHandler(ABC):
         if self.tmp_db_data:
             for key, value in self.tmp_db_data.items():
                 path = paths["save_dests"][db_type][key]
-                print(path)
                 if path.suffix == ".pkl":
                     with open(ensure_path_exists(path, is_file=True), "wb") as f:
                         pickle.dump(value, f, -1)
@@ -371,7 +370,6 @@ class DataHandler(ABC):
 
     def generate_dataset(self, database, paths, file_list, db_type, overwrite):
         self.tmp_db_data = self.DATA_STRUCTURE.get_copy()
-        print(self.tmp_db_data)
         print("Generating {} dataset for database {}".format(db_type, database["name"]))
 
         data_opts = self.load_data_options(database)
@@ -402,11 +400,6 @@ class DataHandler(ABC):
                 self.tmp_db_data = None
         self.finalize_dataset()
         # Save all data
-        print(
-            len(self.tmp_db_data["infos"]),
-            len(self.tmp_db_data["spectrograms"]),
-            len(self.tmp_db_data["tags_linear_presence"]),
-        )
         self.save_dataset(paths, db_type)
         self.tmp_db_data = None
 

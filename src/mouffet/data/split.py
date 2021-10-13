@@ -18,7 +18,6 @@ def random_split(path, split_props, extensions):
         n_split = int(split_prop * n_files)
         n_files = n_files - n_split
         splits[idx] = files[start_idx : start_idx + n_split]
-        print(n_files, len(splits[idx]))
         start_idx = start_idx + n_split
         idx += 1
     splits[idx] = files[start_idx : len(files)]
