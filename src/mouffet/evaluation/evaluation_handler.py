@@ -86,6 +86,7 @@ class EvaluationHandler(ModelHandler):
             model_opts.opts["data_config"] = self.opts["data_config"]
             model_opts.opts["model_dir"] = self.get_option("model_dir", model_opts)
             model_opts.opts["inference"] = True
+            common_utils.print_info("Loading model with options: " + str(model_opts))
             model = self.load_model(model_opts)
             predictions = self.classify_test_data(model, database)
             pred_file.parent.mkdir(parents=True, exist_ok=True)
