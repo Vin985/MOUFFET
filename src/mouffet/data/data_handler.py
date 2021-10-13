@@ -152,6 +152,13 @@ class DataHandler(ABC):
                     )
         return res
 
+    def get_subfolder_options(self, database, name):
+        subfolder_opts = database.get("subfolders", [])
+        for subfolder in subfolder_opts:
+            if subfolder.get("type", "") == name:
+                return subfolder
+        return {}
+
     def get_save_dest_paths(self, dest_dir, db_type, database, subfolders):
         """Create
 
