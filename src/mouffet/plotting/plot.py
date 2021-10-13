@@ -1,8 +1,6 @@
 from importlib import import_module
 import sys
 
-print("import class")
-
 
 class Plot:
 
