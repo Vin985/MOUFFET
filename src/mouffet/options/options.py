@@ -51,7 +51,7 @@ class Options:
         else:
             if name in self.opts:
                 if isinstance(self.opts[name], dict):
-                    common_utils.deep_dict_update(self.opts[name], value)
+                    self.opts[name] = common_utils.deep_dict_update(value, self.opts[name], copy=True)
             else:
                 self.opts[name] = value
 
