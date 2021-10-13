@@ -1,5 +1,6 @@
 from pathlib import Path
-import traceback
+
+from ..utils import common as common_utils
 
 
 class Options:
@@ -44,8 +45,15 @@ class Options:
             )
         return self.DEFAULT_VALUES["options"][option]
 
-    def add_option(self, name, value):
-        self.opts[name] = value
+    def add_option(self, name, value, overwrite=True):
+        if overwrite:
+            self.opts[name] = value
+        else:
+            if name in self.opts:
+                if isinstance(self.opts[name], dict):
+                    common_utils.deep_dict_update(self.opts[name], value)
+            else:
+                self.opts[name] = value
 
     def get(self, value, default):
         return self.opts.get(value, default)
