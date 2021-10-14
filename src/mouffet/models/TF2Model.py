@@ -69,7 +69,7 @@ class TF2Model(DLModel):
         raise NotImplementedError()
 
     @abstractmethod
-    def init_samplers(self):
+    def init_samplers(self, training_data, validation_data):
         raise NotImplementedError()
 
     @abstractmethod
@@ -97,8 +97,6 @@ class TF2Model(DLModel):
     def run_epoch(
         self,
         epoch,
-        training_data,
-        validation_data,
         training_sampler,
         validation_sampler,
         epoch_save_step=None,
@@ -106,8 +104,8 @@ class TF2Model(DLModel):
         # * Reset the metrics at the start of the next epoch
         self.reset_states()
 
-        self.run_step("train", training_data, epoch, training_sampler)
-        self.run_step("validation", validation_data, epoch, validation_sampler)
+        self.run_step("train", epoch, training_sampler)
+        self.run_step("validation", epoch, validation_sampler)
 
         template = (
             "Epoch {}, Loss: {}, Accuracy: {},"
@@ -132,7 +130,9 @@ class TF2Model(DLModel):
 
         print("Training model", self.opts.model_id)
 
-        training_sampler, validation_sampler = self.init_samplers()
+        training_sampler, validation_sampler = self.init_samplers(
+            training_data, validation_data
+        )
 
         epoch_save_step = self.opts.get("epoch_save_step", None)
 
@@ -162,8 +162,6 @@ class TF2Model(DLModel):
                 print("Running epoch ", epoch)
                 self.run_epoch(
                     epoch,
-                    training_data,
-                    validation_data,
                     training_sampler,
                     validation_sampler,
                     epoch_save_step,
@@ -189,10 +187,8 @@ class TF2Model(DLModel):
             self.metrics[x + "_loss"].reset_states()
             self.metrics[x + "_accuracy"].reset_states()
 
-    def run_step(self, step_type, data, step, sampler):
-        for data, labels in tqdm(
-            sampler(self.get_raw_data(data), self.get_ground_truth(data))
-        ):
+    def run_step(self, step_type, step, sampler):
+        for data, labels in tqdm(sampler):
 
             getattr(self, step_type + "_step")(data, labels)
         with self.summary_writer[step_type].as_default():
