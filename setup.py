@@ -16,7 +16,7 @@ setup(
     keywords="machine learning, unified framework, training, evaluation",
     # long_description=read('README.md'),
     name="mouffet",
-    version="0.13",
+    version="0.14",
     packages=find_packages(),
     package_data={"": ["*.svg", "*.yaml", "*.zip", "*.ico", "*.bat"]},
 )
