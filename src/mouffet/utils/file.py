@@ -2,6 +2,8 @@ from pathlib import Path
 
 import yaml
 
+from . import common as common_utils
+
 
 def ensure_path_exists(path, is_file=False):
     if is_file:
@@ -39,10 +41,19 @@ def list_folder(path, extensions=None):
     return (dirs, files)
 
 
-def load_config(path):
-    stream = open(path, "r")
-    config = yaml.load(stream, Loader=yaml.Loader)
-    return config
+def load_yaml(path):
+    with open(path, "r") as stream:
+        config = yaml.load(stream, Loader=yaml.Loader)
+        return config
+
+
+def load_config(opts_path):
+    opts = load_yaml(opts_path)
+    parent_path = opts.get("parent_path", "")
+    if parent_path:
+        parent = load_config(parent_path)
+        opts = common_utils.deep_dict_update(parent, opts, copy=True)
+    return opts
 
 
 def get_full_path(path, root):
@@ -50,4 +61,3 @@ def get_full_path(path, root):
         return path
     else:
         return root / path
-
