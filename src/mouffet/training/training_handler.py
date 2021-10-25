@@ -1,11 +1,21 @@
+import time
 import traceback
 
+import pandas as pd
+
+from ..data.data_handler import DataHandler
 from ..options.model_options import ModelOptions
 from ..utils import common as common_utils
 from ..utils.model_handler import ModelHandler
 
 
 class TrainingHandler(ModelHandler):
+
+    DB_TYPES = [
+        DataHandler.DB_TYPE_TRAINING,
+        DataHandler.DB_TYPE_VALIDATION,
+    ]
+
     def expand_training_scenarios(self):
         scenarios = []
         if "scenarios" in self.opts:
@@ -35,34 +45,84 @@ class TrainingHandler(ModelHandler):
                 db_opts.append(db_opt)
         return db_opts
 
+    def is_already_trained(self, scenario, models_stats_path, model_opts):
+        if models_stats_path.exists():
+            models_stats = pd.read_csv(models_stats_path)
+            if model_opts.get("skip_trained", False):
+                tmp = models_stats.loc[
+                    (models_stats.opts == str(scenario))  # pylint: disable=no-member
+                    & (models_stats.training_duration > 0)  # pylint: disable=no-member
+                ]
+                if not tmp.empty:
+                    return True
+        return False
+
+    def train_scenario(self, scenario):
+        try:
+            scenario_info = {}
+            start = time.time()
+            models_stats = None
+            common_utils.print_title(
+                "Training scenario with options: {}".format(scenario)
+            )
+            model_opts = ModelOptions(scenario)
+
+            # * Load model stats database
+            models_stats_path = model_opts.model_dir / "models_stats.csv"
+            # * Check if model has already been trained
+            if self.is_already_trained(scenario, models_stats_path, model_opts):
+                common_utils.print_info(
+                    "Training for the model has already been completed and resume_training is True. Skipping scenario"
+                )
+                return
+
+            # * Check datasets
+            databases = self.get_scenario_databases_options(scenario)
+            self.data_handler.check_datasets(
+                databases=databases, db_types=self.DB_TYPES
+            )
+            # *  Get model instance
+            model = self.get_model_instance(model_opts)
+            # * Prepare data for training (e.g. preprocessing)
+            data = [
+                model.prepare_data(
+                    self.data_handler.load_datasets(db_type, databases=databases)
+                )
+                for db_type in self.DB_TYPES
+            ]
+            # * Save databases options for training
+            model.save_options("databases.yaml", databases)
+
+            train_start = time.time()
+            # * Perform training
+            model.train(*data)
+            end = time.time()
+
+            # * Save model training information
+            scenario_info["global_duration"] = end - start
+            scenario_info["training_duration"] = end - train_start
+            scenario_info["n_epochs"] = scenario["n_epochs"]
+            scenario_info["model_id"] = model_opts.model_id
+            scenario_info["opts"] = str(scenario)
+
+            df = pd.DataFrame([scenario_info])
+            if models_stats is not None:
+                models_stats = pd.concat([models_stats, df])
+            else:
+                models_stats = df
+            models_stats.to_csv(models_stats_path, index=False)
+
+        except Exception:
+            print(traceback.format_exc())
+            common_utils.print_error(
+                "Error training the model for scenario {}".format(scenario)
+            )
+
     def train(self):
         if not self.data_handler:
             raise AttributeError(
                 "An instance of class DataHandler must be provided in data_handler"
                 + "attribute or at class initialisation"
             )
-        db_types = [
-            self.data_handler.DB_TYPE_TRAINING,
-            self.data_handler.DB_TYPE_VALIDATION,
-        ]
         for scenario in self.scenarios:
-            try:
-                common_utils.print_title(
-                    "Training scenario with options: {}".format(scenario)
-                )
-                databases = self.get_scenario_databases_options(scenario)
-                self.data_handler.check_datasets(databases=databases, db_types=db_types)
-                model = self.get_model_instance(ModelOptions(scenario))
-                data = [
-                    model.prepare_data(
-                        self.data_handler.load_datasets(db_type, databases=databases)
-                    )
-                    for db_type in db_types
-                ]
-                model.save_options("databases.yaml", databases)
-                model.train(*data)
-            except Exception:
-                print(traceback.format_exc())
-                common_utils.print_error(
-                    "Error training the model for scenario {}".format(scenario)
-                )
+            self.train_scenario(scenario)
