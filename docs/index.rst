@@ -32,7 +32,7 @@ and model framework agnostic. This means that several models created with differ
    install
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Core concepts
 
    scenarios
@@ -47,6 +47,14 @@ and model framework agnostic. This means that several models created with differ
    api/evaluation
    api/models
    api/options
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Configuration options
+
+   config/data_config
+   config/training_config
+   config/evaluation_config
 
 .. toctree::
    :maxdepth: 1

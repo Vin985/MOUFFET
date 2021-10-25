@@ -1,5 +1,8 @@
+Frequently Asked Questions
+==========================
 
 
-All my audio files are at the same place. How do I do that?
+All my audio files (training, validation and test) are at the same place. How do I do that?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Use the data_dir option when defining your database
