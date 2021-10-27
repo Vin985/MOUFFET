@@ -1,15 +1,20 @@
+import json
 import time
 import traceback
+from datetime import datetime
 
 import pandas as pd
 
 from ..data.data_handler import DataHandler
 from ..options.model_options import ModelOptions
 from ..utils import common as common_utils
+from ..utils import file as file_utils
 from ..utils.model_handler import ModelHandler
 
 
 class TrainingHandler(ModelHandler):
+
+    MODELS_STATS_FILE_NAME = "models_stats.csv"
 
     DB_TYPES = [
         DataHandler.DB_TYPE_TRAINING,
@@ -45,16 +50,13 @@ class TrainingHandler(ModelHandler):
                 db_opts.append(db_opt)
         return db_opts
 
-    def is_already_trained(self, scenario, models_stats_path, model_opts):
-        if models_stats_path.exists():
-            models_stats = pd.read_csv(models_stats_path)
-            if model_opts.get("skip_trained", False):
-                tmp = models_stats.loc[
-                    (models_stats.opts == str(scenario))  # pylint: disable=no-member
-                    & (models_stats.training_duration > 0)  # pylint: disable=no-member
-                ]
-                if not tmp.empty:
-                    return True
+    def is_already_trained(self, scenario, models_stats, model_opts):
+        if model_opts.get("skip_trained", False):
+            tmp = models_stats.loc[
+                models_stats.opts == str(scenario)  # pylint: disable=no-member
+            ]
+            if not tmp.empty:
+                return True
         return False
 
     def train_scenario(self, scenario):
@@ -68,9 +70,13 @@ class TrainingHandler(ModelHandler):
             model_opts = ModelOptions(scenario)
 
             # * Load model stats database
-            models_stats_path = model_opts.model_dir / "models_stats.csv"
+            models_stats_path = model_opts.model_dir / self.MODELS_STATS_FILE_NAME
+            if models_stats_path.exists():
+                models_stats = pd.read_csv(models_stats_path)
             # * Check if model has already been trained
-            if self.is_already_trained(scenario, models_stats_path, model_opts):
+            if models_stats is not None and self.is_already_trained(
+                scenario, models_stats, model_opts
+            ):
                 common_utils.print_info(
                     "Training for the model has already been completed and resume_training is True. Skipping scenario"
                 )
@@ -83,6 +89,7 @@ class TrainingHandler(ModelHandler):
             )
             # *  Get model instance
             model = self.get_model_instance(model_opts)
+            # model.init_model()
             # * Prepare data for training (e.g. preprocessing)
             data = [
                 model.prepare_data(
@@ -99,10 +106,13 @@ class TrainingHandler(ModelHandler):
             end = time.time()
 
             # * Save model training information
-            scenario_info["global_duration"] = end - start
-            scenario_info["training_duration"] = end - train_start
+
+            scenario_info["date"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            scenario_info["global_duration"] = round(end - start, 2)
+            scenario_info["training_duration"] = round(end - train_start, 2)
             scenario_info["n_epochs"] = scenario["n_epochs"]
             scenario_info["model_id"] = model_opts.model_id
+            scenario_info["n_parameters"] = model.n_parameters
             scenario_info["opts"] = str(scenario)
 
             df = pd.DataFrame([scenario_info])
@@ -110,6 +120,7 @@ class TrainingHandler(ModelHandler):
                 models_stats = pd.concat([models_stats, df])
             else:
                 models_stats = df
+            file_utils.ensure_path_exists(models_stats_path, is_file=True)
             models_stats.to_csv(models_stats_path, index=False)
 
         except Exception:
