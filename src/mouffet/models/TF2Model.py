@@ -4,6 +4,7 @@ from pathlib import Path
 import tensorflow as tf
 from tqdm import tqdm
 
+import numpy as np
 import mouffet.utils.common as common_utils
 
 from .dlmodel import DLModel
@@ -15,6 +16,21 @@ class TF2Model(DLModel):
         self.optimizer = None
         self.summary_writer = {}
         self.metrics = {}
+
+    @property
+    def n_parameters(self):
+        if self.model:
+            res = {}
+            res["trainableParams"] = np.sum(
+                [np.prod(v.get_shape()) for v in self.model.trainable_weights]
+            )
+            res["nonTrainableParams"] = np.sum(
+                [np.prod(v.get_shape()) for v in self.model.non_trainable_weights]
+            )
+            res["totalParams"] = res["trainableParams"] + res["nonTrainableParams"]
+            return str(res)
+        else:
+            return super().n_parameters
 
     @tf.function
     def train_step(self, data, labels):

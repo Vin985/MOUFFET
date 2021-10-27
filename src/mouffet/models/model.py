@@ -27,6 +27,10 @@ class Model(ABC):
             self.opts = opts
 
     @property
+    def n_parameters(self):
+        return -1
+
+    @property
     def opts(self):
         """Property that contains the options related to the model as read in the configuration file"""
         return self._opts
