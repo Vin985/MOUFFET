@@ -141,13 +141,14 @@ class ModelOptions(Options):
                 prefix = prefixes.get(key, prefixes.get("default", ""))
                 mid += str(prefix)
             if self.DICT_PATH_SEPARATOR in key:
-                mid += str(
-                    common_utils.get_dict_path(
-                        self.opts, key, key, sep=self.DICT_PATH_SEPARATOR
-                    )
+                value = common_utils.get_dict_path(
+                    self.opts, key, key, sep=self.DICT_PATH_SEPARATOR
                 )
             else:
-                mid += str(self.opts.get(key, key))
+                value = self.opts.get(key, key)
+            if isinstance(value, list) and len(value) == 1:
+                value = value[0]
+            mid += str(value)
             res[key] = mid
 
         mid = model_id.format(**res)
