@@ -89,7 +89,6 @@ class TrainingHandler(ModelHandler):
             )
             # *  Get model instance
             model = self.get_model_instance(model_opts)
-            # model.init_model()
             # * Prepare data for training (e.g. preprocessing)
             data = [
                 model.prepare_data(
@@ -102,7 +101,7 @@ class TrainingHandler(ModelHandler):
 
             train_start = time.time()
             # * Perform training
-            model.train(*data)
+            train_stats = model.train(*data)
             end = time.time()
 
             # * Save model training information
@@ -114,6 +113,7 @@ class TrainingHandler(ModelHandler):
             scenario_info["model_id"] = model_opts.model_id
             scenario_info["n_parameters"] = model.n_parameters
             scenario_info["opts"] = str(scenario)
+            scenario_info.update(train_stats)
 
             df = pd.DataFrame([scenario_info])
             if models_stats is not None:

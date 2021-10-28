@@ -146,6 +146,8 @@ class TF2Model(DLModel):
 
         print("Training model", self.opts.model_id)
 
+        training_stats = {"crossed": False}
+
         training_sampler, validation_sampler = self.init_samplers(
             training_data, validation_data
         )
@@ -182,8 +184,20 @@ class TF2Model(DLModel):
                     validation_sampler,
                     epoch_save_step,
                 )
+                train_loss = self.metrics["train_loss"].result()
+                val_loss = self.metrics["validation_loss"].result()
+
+                diff = train_loss - val_loss
+                if diff >= 0 and not training_stats["crossed"]:
+                    training_stats["crossed"] = True
+                    training_stats["crossed_at"] = epoch
+                    self.save_model(self.opts.get_intermediate_path(epoch))
+
+                # training_stats["train_loss"] = train_loss
+                # training_stats["val_loss"] = val_loss
 
         self.save_model()
+        return training_stats
 
     def create_writers(self):
         log_dir = Path(self.opts.logs["log_dir"]) / (
