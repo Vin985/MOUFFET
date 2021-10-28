@@ -4,6 +4,8 @@ import mouffet.utils.common as common_utils
 
 
 class DataStructure:
+    """Inherit this class to define your data structure"""
+
     STRUCTURE = {
         "data": {"type": "data", "data_type": []},
         "tags": {"type": "tags", "data_type": []},
