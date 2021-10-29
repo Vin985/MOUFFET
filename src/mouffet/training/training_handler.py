@@ -1,4 +1,4 @@
-import json
+import copy
 import time
 import traceback
 from datetime import datetime
@@ -67,7 +67,7 @@ class TrainingHandler(ModelHandler):
             common_utils.print_title(
                 "Training scenario with options: {}".format(scenario)
             )
-            model_opts = ModelOptions(scenario)
+            model_opts = ModelOptions(copy.deepcopy(scenario))
 
             # * Load model stats database
             models_stats_path = model_opts.model_dir / self.MODELS_STATS_FILE_NAME
