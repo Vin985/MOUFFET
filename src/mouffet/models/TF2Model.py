@@ -188,7 +188,7 @@ class TF2Model(DLModel):
                 val_loss = self.metrics["validation_loss"].result()
 
                 diff = train_loss - val_loss
-                if diff >= 0 and not training_stats["crossed"]:
+                if diff <= 0 and not training_stats["crossed"]:
                     training_stats["crossed"] = True
                     training_stats["crossed_at"] = epoch
                     self.save_model(self.opts.get_intermediate_path(epoch))
