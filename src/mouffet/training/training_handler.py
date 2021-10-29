@@ -54,7 +54,6 @@ class TrainingHandler(ModelHandler):
         if model_opts.get("skip_trained", False):
             print("Checking if already trained")
             print(str(scenario))
-            print(models_stats.opts)
             tmp = models_stats.loc[
                 models_stats.opts == str(scenario)  # pylint: disable=no-member
             ]
