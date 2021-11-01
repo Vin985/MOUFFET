@@ -22,10 +22,16 @@ class TF2Model(DLModel):
         if self.model:
             res = {}
             res["trainableParams"] = np.sum(
-                [np.prod(v.get_shape()) for v in self.model.trainable_weights]
+                [
+                    np.prod(v.get_shape())
+                    for v in self.model.trainable_weights  # pylint: disable=no-member
+                ]
             )
             res["nonTrainableParams"] = np.sum(
-                [np.prod(v.get_shape()) for v in self.model.non_trainable_weights]
+                [
+                    np.prod(v.get_shape())
+                    for v in self.model.non_trainable_weights  # pylint: disable=no-member
+                ]
             )
             res["totalParams"] = res["trainableParams"] + res["nonTrainableParams"]
             return str(res)
@@ -146,6 +152,12 @@ class TF2Model(DLModel):
 
         print("Training model", self.opts.model_id)
 
+        early_stopping = self.opts.get("early_stopping", {})
+        stop = False
+        if early_stopping:
+            patience = early_stopping.get("patience", 3)
+            count = 0
+
         training_stats = {"crossed": False}
 
         training_sampler, validation_sampler = self.init_samplers(
@@ -188,11 +200,22 @@ class TF2Model(DLModel):
                 val_loss = self.metrics["validation_loss"].result()
 
                 diff = train_loss - val_loss
-                if diff <= 0 and not training_stats["crossed"]:
-                    training_stats["crossed"] = True
-                    training_stats["crossed_at"] = epoch
-                    self.save_model(self.opts.get_intermediate_path(epoch))
 
+                if diff <= 0:
+                    if not training_stats["crossed"]:
+                        training_stats["crossed"] = True
+                        training_stats["crossed_at"] = epoch
+                        self.save_model(self.opts.get_intermediate_path(epoch))
+
+                    if early_stopping:
+                        if count < patience:
+                            count += 1
+                        else:
+                            stop = True
+                            break
+
+            if stop:
+                break
                 # training_stats["train_loss"] = train_loss
                 # training_stats["val_loss"] = val_loss
 

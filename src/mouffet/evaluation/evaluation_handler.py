@@ -138,6 +138,7 @@ class EvaluationHandler(ModelHandler):
                     is_file=True,
                 )
             ),
+            index=False,
         )
 
         pr_df = res["stats"].loc[res["stats"]["PR_curve"] == True]
