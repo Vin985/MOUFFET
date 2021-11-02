@@ -1,3 +1,5 @@
+import time
+
 from abc import abstractmethod
 from datetime import datetime
 from itertools import product
@@ -237,7 +239,9 @@ class EvaluationHandler(ModelHandler):
             evaluator = self.get_evaluator(evaluator_opts)
             if evaluator:
                 tags = self.load_tags(database, evaluator.REQUIRES)
+                start = time.time()
                 model_stats = evaluator.run_evaluation(preds, tags, evaluator_opts)
+                end = time.time()
                 model_stats["stats"] = pd.concat(
                     [
                         pd.DataFrame([stats_infos]),
@@ -248,6 +252,8 @@ class EvaluationHandler(ModelHandler):
                 model_stats["stats"]["PR_curve"] = evaluator_opts.get(
                     "do_PR_curve", False
                 )
+                model_stats["stats"]["duration"] = round(end - start, 2)
+                model_stats["stats"]["evaluator"] = evaluator_opts["type"]
 
         return model_stats
 
