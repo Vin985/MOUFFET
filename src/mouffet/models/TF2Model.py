@@ -47,8 +47,8 @@ class TF2Model(DLModel):
         self.basic_step(data, labels, self.STEP_VALIDATION)
 
     def basic_step(self, data, labels, step_type):
-        training = step_type == self.STEP_VALIDATION
-        if not training:
+        training = step_type == self.STEP_TRAINING
+        if training:
             with tf.GradientTape() as tape:
                 predictions = self.model(data, training=True)
                 loss = self.tf_loss(labels, predictions)
@@ -156,7 +156,7 @@ class TF2Model(DLModel):
         stop = False
         if early_stopping:
             patience = early_stopping.get("patience", 3)
-            count = 0
+            count = 1
 
         training_stats = {"crossed": False}
 
@@ -241,7 +241,7 @@ class TF2Model(DLModel):
             self.metrics[x + "_accuracy"].reset_states()
 
     def run_step(self, step_type, step, sampler):
-        for data, labels in tqdm(sampler):
+        for data, labels in tqdm(sampler, ascii=True):
 
             getattr(self, step_type + "_step")(data, labels)
         with self.summary_writer[step_type].as_default():
