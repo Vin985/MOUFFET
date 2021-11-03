@@ -128,6 +128,8 @@ class ModelHandler(ABC):
 
         # pkg = import_module(model["package"])
         # cls = getattr(pkg, model["name"])
+        if not cls:
+            raise ValueError("No class named {} was found".format(model_class))
 
         return cls(model_opts)
 
