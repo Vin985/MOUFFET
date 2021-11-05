@@ -1,11 +1,10 @@
 from abc import abstractmethod
 from pathlib import Path
 
+import mouffet.utils.common as common_utils
+import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
-
-import numpy as np
-import mouffet.utils.common as common_utils
 
 from .dlmodel import DLModel
 
@@ -213,6 +212,8 @@ class TF2Model(DLModel):
                         else:
                             stop = True
                             break
+                else:
+                    count = 0
 
             if stop:
                 break
@@ -241,9 +242,9 @@ class TF2Model(DLModel):
             self.metrics[x + "_accuracy"].reset_states()
 
     def run_step(self, step_type, step, sampler):
-        for data, labels in tqdm(sampler, ascii=True):
-
+        for data, labels in tqdm(sampler, ncols=50):
             getattr(self, step_type + "_step")(data, labels)
+
         with self.summary_writer[step_type].as_default():
             tf.summary.scalar(
                 "loss", self.metrics[step_type + "_loss"].result(), step=step
