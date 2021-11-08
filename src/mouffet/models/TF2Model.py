@@ -1,3 +1,4 @@
+import copy
 from abc import abstractmethod
 from pathlib import Path
 
@@ -10,11 +11,16 @@ from .dlmodel import DLModel
 
 
 class TF2Model(DLModel):
+
+    CALLBACKS_DEFAULTS = {"early_stopping": {}}
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.optimizer = None
         self.summary_writer = {}
         self.metrics = {}
+        self.callbacks = []
+        self.logs = {}
 
     @property
     def n_parameters(self):
@@ -37,14 +43,29 @@ class TF2Model(DLModel):
         else:
             return super().n_parameters
 
-    @tf.function
     def train_step(self, data, labels):
+        self.callbacks.on_train_batch_begin(data, logs=self.logs)
         self.basic_step(data, labels, self.STEP_TRAINING)
+        self.logs = {
+            self.STEP_TRAINING
+            + "_loss": self.metrics[self.STEP_TRAINING + "_loss"].result(),
+            self.STEP_TRAINING
+            + "accuracy": self.metrics[self.STEP_TRAINING + "_accuracy"].result(),
+        }
+        self.callbacks.on_train_batch_end(data, logs=self.logs)
+
+    def validation_step(self, data, labels):
+        self.callbacks.on_test_batch_begin(data, logs=self.logs)
+        self.basic_step(data, labels, self.STEP_VALIDATION)
+        self.logs = {
+            self.STEP_VALIDATION
+            + "_loss": self.metrics[self.STEP_VALIDATION + "_loss"].result(),
+            self.STEP_VALIDATION
+            + "accuracy": self.metrics[self.STEP_VALIDATION + "_accuracy"].result(),
+        }
+        self.callbacks.on_test_batch_end(data, logs=self.logs)
 
     @tf.function
-    def validation_step(self, data, labels):
-        self.basic_step(data, labels, self.STEP_VALIDATION)
-
     def basic_step(self, data, labels, step_type):
         training = step_type == self.STEP_TRAINING
         if training:
@@ -63,8 +84,8 @@ class TF2Model(DLModel):
             predictions = self.model(data, training=False)
             loss = self.tf_loss(labels, predictions)
 
-        self.metrics[step_type + "_loss"](loss)
-        self.metrics[step_type + "_accuracy"](labels, predictions)
+        self.metrics[step_type + "_loss"].update_state(loss)
+        self.metrics[step_type + "_accuracy"].update_state(labels, predictions)
 
     @staticmethod
     @abstractmethod
@@ -102,6 +123,23 @@ class TF2Model(DLModel):
         if "weights_opts" in self.opts or self.opts.get("inference", False):
             self.load_weights()
 
+    def add_callbacks(self):
+        early_stopping = self.opts.get("early_stopping", {})
+        if early_stopping:
+            if isinstance(early_stopping, bool):
+                early_stopping = {}
+            opts = copy.deepcopy(self.CALLBACKS_DEFAULTS["early_stopping"])
+            opts.update(early_stopping)
+            print(opts)
+            self.callbacks.append(tf.keras.callbacks.EarlyStopping(**opts))
+
+    def init_callbacks(self):
+        self.add_callbacks()
+        if isinstance(self.callbacks, list):
+            self.callbacks = tf.keras.callbacks.CallbackList(
+                self.callbacks, add_history=True, model=self.model
+            )
+
     def init_training(self):
         """This is a function called at the beginning of the training step. In
         this function you should initialize your train and validation samplers,
@@ -110,10 +148,13 @@ class TF2Model(DLModel):
 
         """
         self.opts.add_option("training", True)
+        self.logs = {}
 
         self.init_model()
 
         self.init_metrics()
+
+        self.init_callbacks()
 
     def run_epoch(
         self,
@@ -123,6 +164,7 @@ class TF2Model(DLModel):
         epoch_save_step=None,
     ):
         # * Reset the metrics at the start of the next epoch
+        self.callbacks.on_epoch_begin(epoch, logs=self.logs)
         self.reset_states()
 
         self.run_step("train", epoch, training_sampler)
@@ -144,20 +186,23 @@ class TF2Model(DLModel):
 
         if epoch_save_step is not None and epoch % epoch_save_step == 0:
             self.save_model(self.opts.get_intermediate_path(epoch))
+        self.callbacks.on_epoch_end(epoch, logs=self.logs)
 
     def train(self, training_data, validation_data):
 
         self.init_training()
 
+        self.callbacks.on_train_begin(logs=self.logs)
+
         print("Training model", self.opts.model_id)
 
-        early_stopping = self.opts.get("early_stopping", {})
+        # early_stopping = self.opts.get("early_stopping", {})
         stop = False
-        if early_stopping:
-            patience = early_stopping.get("patience", 3)
-            count = 1
+        # if early_stopping:
+        #     patience = early_stopping.get("patience", 3)
+        #     count = 1
 
-        training_stats = {"crossed": False}
+        training_stats = {}
 
         training_sampler, validation_sampler = self.init_samplers(
             training_data, validation_data
@@ -172,22 +217,22 @@ class TF2Model(DLModel):
 
         epoch_batches = self.get_epoch_batches()
 
-        for batch in epoch_batches:
-            lr = batch["learning_rate"]
+        for epoch_batch in epoch_batches:
+            lr = epoch_batch["learning_rate"]
 
             common_utils.print_info(
                 (
                     "Starting new batch of epochs from epoch number {}, with learning rate {} for {} iterations"
-                ).format(batch["start"], lr, batch["length"])
+                ).format(epoch_batch["start"], lr, epoch_batch["length"])
             )
 
-            if batch.get("fine_tuning", False):
+            if epoch_batch.get("fine_tuning", False):
                 print("Doing fine_tuning")
                 self.set_fine_tuning()
                 self.model.summary()  # pylint: disable=no-member
 
             self.init_optimizer(learning_rate=lr)
-            for epoch in range(batch["start"], batch["end"] + 1):
+            for epoch in range(epoch_batch["start"], epoch_batch["end"] + 1):
                 print("Running epoch ", epoch)
                 self.run_epoch(
                     epoch,
@@ -198,22 +243,30 @@ class TF2Model(DLModel):
                 train_loss = self.metrics["train_loss"].result()
                 val_loss = self.metrics["validation_loss"].result()
 
-                diff = train_loss - val_loss
+                if self.model.stop_training:  # pylint: disable=no-member
+                    stop = True
+                    training_stats["stopped"] = epoch
+                    common_utils.print_info(
+                        "Ealy stopping: stopping at epoch {}".format(epoch)
+                    )
+                    break
 
-                if diff <= 0:
-                    if not training_stats["crossed"]:
-                        training_stats["crossed"] = True
-                        training_stats["crossed_at"] = epoch
-                        self.save_model(self.opts.get_intermediate_path(epoch))
+                # diff = train_loss - val_loss
 
-                    if early_stopping:
-                        if count < patience:
-                            count += 1
-                        else:
-                            stop = True
-                            break
-                else:
-                    count = 0
+                # if diff <= 0:
+                #     if not training_stats["crossed"]:
+                #         training_stats["crossed"] = True
+                #         training_stats["crossed_at"] = epoch
+                #         self.save_model(self.opts.get_intermediate_path(epoch))
+
+                #     if early_stopping:
+                #         if count < patience:
+                #             count += 1
+                #         else:
+                #             stop = True
+                #             break
+                # else:
+                #     count = 0
 
             if stop:
                 break
@@ -221,6 +274,9 @@ class TF2Model(DLModel):
                 # training_stats["val_loss"] = val_loss
 
         self.save_model()
+
+        self.callbacks.on_train_end(logs=self.logs)
+
         return training_stats
 
     def create_writers(self):
@@ -243,7 +299,9 @@ class TF2Model(DLModel):
 
     def run_step(self, step_type, step, sampler):
         for data, labels in tqdm(sampler, ncols=50):
+            self.callbacks.on_batch_begin(data, logs=self.logs)
             getattr(self, step_type + "_step")(data, labels)
+            self.callbacks.on_batch_end(data, logs=self.logs)
 
         with self.summary_writer[step_type].as_default():
             tf.summary.scalar(
