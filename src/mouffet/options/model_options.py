@@ -146,9 +146,7 @@ class ModelOptions(Options):
                 )
             else:
                 value = self.opts.get(key, key)
-            if isinstance(value, list) and len(value) == 1:
-                value = value[0]
-            else:
+            if isinstance(value, list):
                 value = "-".join([str(i) for i in value])
             mid += str(value)
             res[key] = mid
