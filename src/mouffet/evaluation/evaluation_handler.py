@@ -1,5 +1,5 @@
 import time
-
+import traceback
 from abc import abstractmethod
 from datetime import datetime
 from itertools import product
@@ -206,56 +206,63 @@ class EvaluationHandler(ModelHandler):
         return opts
 
     def evaluate_scenario(self, opts):
-        db_opts, model_opts, evaluator_opts = opts
-        model_opts = ModelOptions(model_opts)
-        # * Add global option to model options for id resolution
-        model_opts = self.add_global_options(model_opts)
-        if "databases_options" in model_opts:
-            common_utils.deep_dict_update(db_opts, model_opts.databases_options)
-        # * Duplicate database options
-        database = self.data_handler.duplicate_database(db_opts)
-        model_stats = {}
-        if database and database.has_type("test"):
-            self.data_handler.check_dataset(database, ["test"])
-            preds = self.get_predictions(model_opts, database)
-            preds = preds.rename(columns={"recording_path": "recording_id"})
-            stats_infos = {
-                "database": database.name,
-                "model": model_opts.model_id,
-                "class": database.class_type,
-            }
-            stats_opts = {
-                "database_opts": str(database.updated_opts),
-                "model_opts": str(model_opts),
-            }
-            print(
-                "\033[92m"
-                + "Evaluating model {0} on test dataset {1}".format(
-                    model_opts.name, database.name
+        try:
+            db_opts, model_opts, evaluator_opts = opts
+            model_opts = ModelOptions(model_opts)
+            # * Add global option to model options for id resolution
+            model_opts = self.add_global_options(model_opts)
+            if "databases_options" in model_opts:
+                common_utils.deep_dict_update(db_opts, model_opts.databases_options)
+            # * Duplicate database options
+            database = self.data_handler.duplicate_database(db_opts)
+            model_stats = {}
+            if database and database.has_type("test"):
+                self.data_handler.check_dataset(database, ["test"])
+                preds = self.get_predictions(model_opts, database)
+                preds = preds.rename(columns={"recording_path": "recording_id"})
+                stats_infos = {
+                    "database": database.name,
+                    "model": model_opts.model_id,
+                    "class": database.class_type,
+                }
+                stats_opts = {
+                    "database_opts": str(database.updated_opts),
+                    "model_opts": str(model_opts),
+                }
+                print(
+                    "\033[92m"
+                    + "Evaluating model {0} on test dataset {1}".format(
+                        model_opts.name, database.name
+                    )
+                    + "\033[0m"
                 )
-                + "\033[0m"
-            )
-            evaluator_opts["scenario_info"] = stats_infos
-            evaluator = self.get_evaluator(evaluator_opts)
-            if evaluator:
-                tags = self.load_tags(database, evaluator.REQUIRES)
-                start = time.time()
-                model_stats = evaluator.run_evaluation(preds, tags, evaluator_opts)
-                end = time.time()
-                model_stats["stats"] = pd.concat(
-                    [
-                        pd.DataFrame([stats_infos]),
-                        model_stats["stats"].assign(**stats_opts),
-                    ],
-                    axis=1,
-                )
-                model_stats["stats"]["PR_curve"] = evaluator_opts.get(
-                    "do_PR_curve", False
-                )
-                model_stats["stats"]["duration"] = round(end - start, 2)
-                model_stats["stats"]["evaluator"] = evaluator_opts["type"]
+                evaluator_opts["scenario_info"] = stats_infos
+                evaluator = self.get_evaluator(evaluator_opts)
+                if evaluator:
+                    tags = self.load_tags(database, evaluator.REQUIRES)
+                    start = time.time()
+                    model_stats = evaluator.run_evaluation(preds, tags, evaluator_opts)
+                    end = time.time()
+                    model_stats["stats"] = pd.concat(
+                        [
+                            pd.DataFrame([stats_infos]),
+                            model_stats["stats"].assign(**stats_opts),
+                        ],
+                        axis=1,
+                    )
+                    model_stats["stats"]["PR_curve"] = evaluator_opts.get(
+                        "do_PR_curve", False
+                    )
+                    model_stats["stats"]["duration"] = round(end - start, 2)
+                    model_stats["stats"]["evaluator"] = evaluator_opts["type"]
 
-        return model_stats
+                    return model_stats
+        except Exception:
+            print(traceback.format_exc())
+            common_utils.print_error(
+                "Error evaluating the model for scenario {}".format(opts)
+            )
+            return {}
 
     def evaluate(self):
         stats = [self.evaluate_scenario(scenario) for scenario in self.scenarios]
