@@ -43,6 +43,8 @@ class EvaluationHandler(ModelHandler):
         [type]: [description]
     """
 
+    PREDICTIONS_STATS_FILE_NAME = "predictions_stats.csv"
+
     EVALUATORS = {}
 
     def __init__(self, *args, **kwargs):
@@ -84,13 +86,40 @@ class EvaluationHandler(ModelHandler):
         if not model_opts.get("reclassify", False) and pred_file.exists():
             predictions = feather.read_dataframe(pred_file)
         else:
-
+            # * Load predictions stats database
+            scenario_info = {}
+            preds_stats = None
+            preds_stats_dir = Path(self.get_option("predictions_dir", model_opts))
+            preds_stats_path = preds_stats_dir / self.PREDICTIONS_STATS_FILE_NAME
+            if preds_stats_path.exists():
+                preds_stats = pd.read_csv(preds_stats_path)
             model_opts.opts["data_config"] = self.opts["data_config"]
             model_opts.opts["model_dir"] = self.get_option("model_dir", model_opts)
             model_opts.opts["inference"] = True
             common_utils.print_info("Loading model with options: " + str(model_opts))
             model = self.load_model(model_opts)
-            predictions = self.classify_test_data(model, database)
+            predictions, infos = self.classify_test_data(model, database)
+
+            # * save classification stats
+            scenario_info["date"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            scenario_info["model_id"] = model_opts.model_id
+            # scenario_info["database"] =
+            # scenario_info["classification_duration"] = round(end - start, 2)
+            # scenario_info["n_files"] =
+            # scenario_info["opts"] = str(scenario)
+            scenario_info.update(infos)
+
+            df = pd.DataFrame([scenario_info])
+            if preds_stats is not None:
+                preds_stats = pd.concat([preds_stats, df])
+                preds_stats = preds_stats.drop_duplicates(
+                    subset=["database", "model_id"], keep="last"
+                )
+            else:
+                preds_stats = df
+            file_utils.ensure_path_exists(preds_stats_path, is_file=True)
+            preds_stats.to_csv(preds_stats_path, index=False)
+
             pred_file.parent.mkdir(parents=True, exist_ok=True)
             feather.write_dataframe(predictions, pred_file)
         return predictions
