@@ -13,6 +13,8 @@ class Evaluator(ABC):
         "values": {"start": 0, "end": 1, "step": 0.05},
     }
 
+    DEFAULT_PLOTS = []
+
     def run_evaluation(self, predictions, tags, options):
         if options.get("do_PR_curve", False):
             return self.get_PR_curve(predictions, tags, options)
@@ -50,5 +52,12 @@ class Evaluator(ABC):
             res = plot.plot_PR_curve(res, options)  # pylint: disable=no-member
         return res
 
-    def draw_plots(self, options, **kwargs):
-        return None
+    def draw_plots(self, data, options):
+        res = {}
+        plots = options.get("plots", self.DEFAULT_PLOTS)
+        for to_plot in plots:
+            func_name = "plot_" + to_plot.strip()
+            if hasattr(self, func_name) and callable(getattr(self, func_name)):
+                tmp = getattr(self, func_name)(data, options)
+                res[to_plot] = tmp
+        return res
