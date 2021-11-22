@@ -234,14 +234,37 @@ class EvaluationHandler(ModelHandler):
             )
         return opts
 
+    def skip_database(self, db, evaluator_opts):
+        include = evaluator_opts.get("databases", [])
+        if include and not db in include:
+            common_utils.print_info(
+                "Database {} is not in the accepted databases list of evaluator {}. Skipping.".format(
+                    db, evaluator_opts["type"]
+                )
+            )
+            return True
+        exclude = evaluator_opts.get("exclude_databases", [])
+        if exclude and db in exclude:
+            common_utils.print_info(
+                "Database {} is in the excluded databases of evaluator {}. Skipping.".format(
+                    db, evaluator_opts["type"]
+                )
+            )
+            return True
+        return False
+
     def evaluate_scenario(self, opts):
         try:
             db_opts, model_opts, evaluator_opts = opts
+            if self.skip_database(db_opts["name"], evaluator_opts):
+                return {}
+
             model_opts = ModelOptions(model_opts)
             # * Add global option to model options for id resolution
             model_opts = self.add_global_options(model_opts)
             if "databases_options" in model_opts:
                 common_utils.deep_dict_update(db_opts, model_opts.databases_options)
+
             # * Duplicate database options
             database = self.data_handler.duplicate_database(db_opts)
             model_stats = {}
@@ -260,8 +283,8 @@ class EvaluationHandler(ModelHandler):
                 }
                 print(
                     "\033[92m"
-                    + "Evaluating model {0} on test dataset {1}".format(
-                        model_opts.name, database.name
+                    + "Evaluating model {0} on test dataset {1} with evaluator {2}".format(
+                        model_opts.model_id, database.name, evaluator_opts["type"]
                     )
                     + "\033[0m"
                 )
