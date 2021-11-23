@@ -51,13 +51,8 @@ class EvaluationHandler(ModelHandler):
         super().__init__(*args, **kwargs)
         plot.set_plotting_method(self.opts)  # pylint: disable=no-member
 
-    @staticmethod
     @abstractmethod
-    def classify_element(model, element, *args, **kwargs):
-        pass
-
-    @abstractmethod
-    def classify_test_data(self, model, database):
+    def classify_database(self, model, database, db_type="test"):
         pass
 
     def get_predictions_dir(self, model_opts, database):
@@ -98,7 +93,7 @@ class EvaluationHandler(ModelHandler):
             model_opts.opts["inference"] = True
             common_utils.print_info("Loading model with options: " + str(model_opts))
             model = self.load_model(model_opts)
-            predictions, infos = self.classify_test_data(model, database)
+            predictions, infos = self.classify_database(model, database, db_type="test")
 
             # * save classification stats
             scenario_info["date"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
@@ -172,7 +167,9 @@ class EvaluationHandler(ModelHandler):
             index=False,
         )
 
-        pr_df = res["stats"].loc[res["stats"]["PR_curve"] == True]
+        pr_df = res["stats"].loc[
+            res["stats"]["PR_curve"] == True  # pylint: disable=singleton-comparison
+        ]
 
         if not pr_df.empty:
             self.save_pr_curve_data(pr_df)

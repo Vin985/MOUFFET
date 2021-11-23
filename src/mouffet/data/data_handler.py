@@ -340,22 +340,11 @@ class DataHandler(ABC):
         )
         return classes
 
-    @staticmethod
-    @abstractmethod
-    def load_raw_data(file_path, opts, *args, **kwargs):
-        pass
-
-    @staticmethod
-    @abstractmethod
-    def load_tags(tags_dir, opts, *args, **kwargs):
-        pass
-
     @abstractmethod
     def load_file_data(self, file_path, tags_dir, opts):
         """Load data for the file at file_path. This usually include loading the raw data
-        and the tags associated with the file. This method usually include a call to
-        load_raw_data() and load_tags(). This method should then fill the tmp_db_data attribute
-        to save the intermediate results
+        and the tags associated with the file. This method should then fill the tmp_db_data
+        attribute to save the intermediate results
 
         Args:
             file_path ([type]): [description]
