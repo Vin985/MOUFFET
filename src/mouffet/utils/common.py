@@ -196,3 +196,9 @@ def join_tuple(tuple, sep):
     if len(tuple) > 1:
         return sep.join(tuple)
     return tuple[0]
+
+
+def list2str(value, sep="-"):
+    if isinstance(value, list):
+        value = sep.join([list2str(i) for i in value])
+    return str(value)

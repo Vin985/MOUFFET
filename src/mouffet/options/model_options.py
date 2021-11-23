@@ -146,9 +146,7 @@ class ModelOptions(Options):
                 )
             else:
                 value = self.opts.get(key, key)
-            if isinstance(value, list):
-                value = "-".join([str(i) for i in value])
-            mid += str(value)
+            mid += common_utils.list2str(value)
             res[key] = mid
 
         mid = model_id.format(**res)
