@@ -19,8 +19,6 @@ class ModelHandler(ABC):
         opts_path="",
         dh=None,
         dh_class=None,
-        # model=None,
-        # model_class=None,
         **kwargs,
     ):
         if not opts:

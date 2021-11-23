@@ -2,10 +2,12 @@ import copy
 from abc import abstractmethod
 from pathlib import Path
 
-import mouffet.utils.common as common_utils
+
 import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
+
+import mouffet.utils.common as common_utils
 
 from .dlmodel import DLModel
 
@@ -130,7 +132,6 @@ class TF2Model(DLModel):
                 early_stopping = {}
             opts = copy.deepcopy(self.CALLBACKS_DEFAULTS["early_stopping"])
             opts.update(early_stopping)
-            print(opts)
             self.callbacks.append(tf.keras.callbacks.EarlyStopping(**opts))
 
     def init_callbacks(self):
