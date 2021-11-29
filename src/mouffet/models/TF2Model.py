@@ -134,13 +134,13 @@ class TF2Model(DLModel):
             opts = copy.deepcopy(self.CALLBACKS_DEFAULTS["early_stopping"])
             opts.update(early_stopping)
             self.callbacks.append(tf.keras.callbacks.EarlyStopping(**opts))
-        if self.opts.get("use_ma", False):
-            self.callbacks.append(
-                tfa.callbacks.AverageModelCheckpoint(
-                    filepath=str(self.opts.results_save_dir / self.opts.model_id),
-                    update_weights=True,
-                )
-            )
+        # if self.opts.get("use_ma", False):
+        #     self.callbacks.append(
+        #         tfa.callbacks.AverageModelCheckpoint(
+        #             filepath=str(self.opts.results_save_dir / self.opts.model_id),
+        #             update_weights=False,
+        #         )
+        #     )
 
     def init_callbacks(self):
         self.add_callbacks()
