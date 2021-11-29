@@ -5,6 +5,7 @@ from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
+import tensorflow_addons as tfa
 from tqdm import tqdm
 
 import mouffet.utils.common as common_utils
@@ -18,7 +19,7 @@ class TF2Model(DLModel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.optimizer = None
+        # self.optimizer = None
         self.summary_writer = {}
         self.metrics = {}
         self.callbacks = []
@@ -77,7 +78,7 @@ class TF2Model(DLModel):
             gradients = tape.gradient(
                 loss, self.model.trainable_variables  # pylint: disable=no-member
             )  # pylint: disable=no-member
-            self.optimizer.apply_gradients(
+            self.model.optimizer.apply_gradients(
                 zip(
                     gradients, self.model.trainable_variables
                 )  # pylint: disable=no-member
@@ -133,6 +134,13 @@ class TF2Model(DLModel):
             opts = copy.deepcopy(self.CALLBACKS_DEFAULTS["early_stopping"])
             opts.update(early_stopping)
             self.callbacks.append(tf.keras.callbacks.EarlyStopping(**opts))
+        if self.opts.get("use_ma", False):
+            self.callbacks.append(
+                tfa.callbacks.AverageModelCheckpoint(
+                    filepath=str(self.opts.results_save_dir / self.opts.model_id),
+                    update_weights=True,
+                )
+            )
 
     def init_callbacks(self):
         self.add_callbacks()
@@ -152,6 +160,8 @@ class TF2Model(DLModel):
         self.logs = {}
 
         self.init_model()
+
+        self.init_optimizer()
 
         self.init_metrics()
 
