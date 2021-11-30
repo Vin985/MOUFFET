@@ -1,6 +1,5 @@
 import csv
 import pickle
-import traceback
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -30,9 +29,10 @@ class DataHandler(ABC):
 
     SPLIT_FUNCS = {}
 
-    def __init__(self, opts):
+    def __init__(self, opts, loader_cls=None):
         self.opts = opts
         self.tmp_db_data = None
+        self.loader = loader_cls
         self.databases = self.load_databases()
 
     def load_databases(self):
@@ -354,9 +354,9 @@ class DataHandler(ABC):
         data, tags = [], []
         return data, tags
 
-    def save_dataset(self, paths, db_type):
-        if self.tmp_db_data:
-            for key, value in self.tmp_db_data.items():
+    def save_dataset(self, data, paths, db_type):
+        if data:
+            for key, value in data:
                 path = paths["save_dests"][db_type][key]
                 if path.suffix == ".pkl":
                     with open(ensure_path_exists(path, is_file=True), "wb") as f:
@@ -377,40 +377,46 @@ class DataHandler(ABC):
     def load_data_options(self, database):
         return {}
 
+    # def generate_dataset(self, database, paths, file_list, db_type, overwrite):
+    #     self.tmp_db_data = self.DATA_STRUCTURE.get_copy()
+    #     print("Generating {} dataset for database {}".format(db_type, database["name"]))
+
+    #     data_opts = self.load_data_options(database)
+
+    #     split = database.get("split", {})
+    #     if split and db_type in split:
+    #         tags_dir = paths["tags"]["training"]
+    #     else:
+    #         tags_dir = paths["tags"][db_type]
+    #     for file_path in file_list:
+    #         try:
+    #             if not isinstance(file_path, Path):
+    #                 file_path = Path(file_path)
+
+    #             intermediate = self.load_file_data(
+    #                 file_path=file_path, tags_dir=tags_dir, opts=data_opts
+    #             )
+
+    #             if database.save_intermediates:
+    #                 savename = (
+    #                     paths["dest"][db_type] / "intermediate" / file_path.name
+    #                 ).with_suffix(".pkl")
+    #                 if not savename.exists() or overwrite:
+    #                     with open(savename, "wb") as f:
+    #                         pickle.dump(intermediate, f, -1)
+    #         except Exception:
+    #             print("Error loading: " + str(file_path) + ", skipping.")
+    #             print(traceback.format_exc())
+    #             self.tmp_db_data = None
+    #     self.finalize_dataset()
+    #     # Save all data
+    #     self.save_dataset(paths, db_type)
+    #     self.tmp_db_data = None
+
     def generate_dataset(self, database, paths, file_list, db_type, overwrite):
-        self.tmp_db_data = self.DATA_STRUCTURE.get_copy()
-        print("Generating {} dataset for database {}".format(db_type, database["name"]))
-
-        data_opts = self.load_data_options(database)
-
-        for file_path in file_list:
-            try:
-                if not isinstance(file_path, Path):
-                    file_path = Path(file_path)
-                split = database.get("split", {})
-                if split and db_type in split:
-                    tags_dir = paths["tags"]["training"]
-                else:
-                    tags_dir = paths["tags"][db_type]
-                intermediate = self.load_file_data(
-                    file_path=file_path, tags_dir=tags_dir, opts=data_opts
-                )
-
-                if database.save_intermediates:
-                    savename = (
-                        paths["dest"][db_type] / "intermediate" / file_path.name
-                    ).with_suffix(".pkl")
-                    if not savename.exists() or overwrite:
-                        with open(savename, "wb") as f:
-                            pickle.dump(intermediate, f, -1)
-            except Exception:
-                print("Error loading: " + str(file_path) + ", skipping.")
-                print(traceback.format_exc())
-                self.tmp_db_data = None
-        self.finalize_dataset()
-        # Save all data
-        self.save_dataset(paths, db_type)
-        self.tmp_db_data = None
+        loader = self.loader(self.DATA_STRUCTURE)
+        loader.load_dataset(database, paths, file_list, db_type, overwrite)
+        self.save_dataset(loader.data, paths, db_type)
 
     def check_dataset_exists(self, paths, db_type):
         for key in self.DATA_STRUCTURE.keys():
