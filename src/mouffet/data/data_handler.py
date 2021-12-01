@@ -29,6 +29,8 @@ class DataHandler(ABC):
 
     SPLIT_FUNCS = {}
 
+    LOADERS = {"default": DataLoader}
+
     def __init__(self, opts, loader_cls=None):
         self.opts = opts
         self.tmp_db_data = None
@@ -414,7 +416,8 @@ class DataHandler(ABC):
     #     self.tmp_db_data = None
 
     def generate_dataset(self, database, paths, file_list, db_type, overwrite):
-        loader = self.loader(self.DATA_STRUCTURE)
+        loader_cls = self.LOADERS[database.get("loader", "default")]
+        loader = loader_cls(self.DATA_STRUCTURE)
         loader.load_dataset(database, paths, file_list, db_type, overwrite)
         self.save_dataset(loader.data, paths, db_type)
 
