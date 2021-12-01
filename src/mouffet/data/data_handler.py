@@ -6,6 +6,8 @@ from pathlib import Path
 import feather
 import pandas as pd
 
+from mouffet.data.data_loader import DataLoader
+
 from ..options.database_options import DatabaseOptions
 from ..utils import common as common_utils
 from ..utils.file import ensure_path_exists, get_full_path, list_files
@@ -16,7 +18,14 @@ from .data_structure import DataStructure
 class DataHandler(ABC):
     """
     A class that handles all data related business. While this class provides convenience functions,
-    this should be subclassed
+    this should be subclassed.
+
+
+    .. csv-table::
+        :header: "Option name", "Description", "Default", "Type"
+
+        "generate_file_lists", "Should file lists be regenerated", False, "bool"
+
     """
 
     OPTIONS_CLASS = DatabaseOptions
@@ -34,7 +43,6 @@ class DataHandler(ABC):
     def __init__(self, opts, loader_cls=None):
         self.opts = opts
         self.tmp_db_data = None
-        self.loader = loader_cls
         self.databases = self.load_databases()
 
     def load_databases(self):
@@ -342,20 +350,6 @@ class DataHandler(ABC):
         )
         return classes
 
-    @abstractmethod
-    def load_file_data(self, file_path, tags_dir, opts):
-        """Load data for the file at file_path. This usually include loading the raw data
-        and the tags associated with the file. This method should then fill the tmp_db_data
-        attribute to save the intermediate results
-
-        Args:
-            file_path ([type]): [description]
-            tags_dir ([type]): [description]
-            opts ([type]): [description]
-        """
-        data, tags = [], []
-        return data, tags
-
     def save_dataset(self, data, paths, db_type):
         if data:
             for key, value in data:
@@ -374,46 +368,6 @@ class DataHandler(ABC):
         (e.g. dataframe concatenation)
         """
         pass
-
-    @abstractmethod
-    def load_data_options(self, database):
-        return {}
-
-    # def generate_dataset(self, database, paths, file_list, db_type, overwrite):
-    #     self.tmp_db_data = self.DATA_STRUCTURE.get_copy()
-    #     print("Generating {} dataset for database {}".format(db_type, database["name"]))
-
-    #     data_opts = self.load_data_options(database)
-
-    #     split = database.get("split", {})
-    #     if split and db_type in split:
-    #         tags_dir = paths["tags"]["training"]
-    #     else:
-    #         tags_dir = paths["tags"][db_type]
-    #     for file_path in file_list:
-    #         try:
-    #             if not isinstance(file_path, Path):
-    #                 file_path = Path(file_path)
-
-    #             intermediate = self.load_file_data(
-    #                 file_path=file_path, tags_dir=tags_dir, opts=data_opts
-    #             )
-
-    #             if database.save_intermediates:
-    #                 savename = (
-    #                     paths["dest"][db_type] / "intermediate" / file_path.name
-    #                 ).with_suffix(".pkl")
-    #                 if not savename.exists() or overwrite:
-    #                     with open(savename, "wb") as f:
-    #                         pickle.dump(intermediate, f, -1)
-    #         except Exception:
-    #             print("Error loading: " + str(file_path) + ", skipping.")
-    #             print(traceback.format_exc())
-    #             self.tmp_db_data = None
-    #     self.finalize_dataset()
-    #     # Save all data
-    #     self.save_dataset(paths, db_type)
-    #     self.tmp_db_data = None
 
     def generate_dataset(self, database, paths, file_list, db_type, overwrite):
         loader_cls = self.LOADERS[database.get("loader", "default")]
