@@ -1,21 +1,36 @@
 import pickle
 import traceback
-from abc import ABC, abstractmethod
 from pathlib import Path
 
 import pandas as pd
 
+from ..utils import common as common_utils
 
-class DataLoader(ABC):
+
+class DataLoader:
+    """Basic class for loading raw data into the dataset.
+    By default, only the method :meth:`load_dataset` is called by the
+    :class:`.data_handler.DataHandler` instance during the dataset generation call
+    (by :meth:`.data_handler.DataHandler.generate_datasets`).
+    A basic implementation of :meth:`load_dataset` is provided, however this method calls two
+    other methods, :meth:`load_data_options` and :meth:`load_file_data`, that should be overriden
+    since they do nothing by default.
+    """
+
     def __init__(self, structure):
         self.data = structure.get_copy()
 
-    @abstractmethod
-    def load_data_options(self, database):
+    def load_data_options(self, *args, **kwargs):
+        common_utils.print_warning(
+            (
+                "WARNING! Calling load_data_options() method from the default DataLoader class which "
+                + "does nothing. Please inherit this class and override this method for loading "
+                + "any options relevant to the loading of the files of the dataset."
+            )
+        )
         return {}
 
-    @abstractmethod
-    def load_file_data(self, file_path, tags_dir, opts):
+    def load_file_data(self, *args, **kwargs):
         """Load data for the file at file_path. This usually include loading the raw data
         and the tags associated with the file. This method should then fill the tmp_db_data
         attribute to save the intermediate results
@@ -25,6 +40,13 @@ class DataLoader(ABC):
             tags_dir ([type]): [description]
             opts ([type]): [description]
         """
+        common_utils.print_warning(
+            (
+                "Calling load_file_data() method from the default DataLoader class which "
+                + "does nothing. Please inherit this class and override this method for loading "
+                + "the files and tags of the dataset."
+            )
+        )
         data, tags = [], []
         return data, tags
 
@@ -33,7 +55,6 @@ class DataLoader(ABC):
         in case some further action must be done after all files are loaded
         (e.g. dataframe concatenation)
         """
-        pass
 
     def load_classes(self, database):
         class_type = database.class_type
@@ -48,6 +69,15 @@ class DataLoader(ABC):
         return classes
 
     def load_dataset(self, database, paths, file_list, db_type, overwrite):
+        """[summary]
+
+        Args:
+            database ([type]): [description]
+            paths ([type]): [description]
+            file_list ([type]): [description]
+            db_type ([type]): [description]
+            overwrite ([type]): [description]
+        """
         db_opts = self.load_data_options(database)
         split = database.get("split", {})
         if split and db_type in split:
