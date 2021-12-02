@@ -30,7 +30,8 @@ class EvaluationHandler(ModelHandler):
     reclassify: Run the model again even if a prediction file is found
 
     <Evaluators>
-    type: The type of evaluator corresponding to one of the keys of EVALUATORS attribute of the subclass
+    type: The type of evaluator corresponding to one of the keys of EVALUATORS attribute
+    of the subclass
 
 
     Args:
@@ -98,10 +99,6 @@ class EvaluationHandler(ModelHandler):
             # * save classification stats
             scenario_info["date"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
             scenario_info["model_id"] = model_opts.model_id
-            # scenario_info["database"] =
-            # scenario_info["classification_duration"] = round(end - start, 2)
-            # scenario_info["n_files"] =
-            # scenario_info["opts"] = str(scenario)
             scenario_info.update(infos)
 
             df = pd.DataFrame([scenario_info])
@@ -153,9 +150,11 @@ class EvaluationHandler(ModelHandler):
 
     def save_results(self, results):
         res = self.consolidate_results(results)
-        time = datetime.now()
-        res_dir = Path(self.opts.get("evaluation_dir", ".")) / time.strftime("%Y%m%d")
-        prefix = time.strftime("%H%M%S")
+        cur_time = datetime.now()
+        res_dir = Path(self.opts.get("evaluation_dir", ".")) / cur_time.strftime(
+            "%Y%m%d"
+        )
+        prefix = cur_time.strftime("%H%M%S")
         eval_id = self.opts.get("id", "")
         res["stats"].to_csv(
             str(
@@ -288,7 +287,9 @@ class EvaluationHandler(ModelHandler):
                 evaluator_opts["scenario_info"] = stats_infos
                 evaluator = self.get_evaluator(evaluator_opts)
                 if evaluator:
-                    tags = self.load_tags(database, evaluator.REQUIRES)
+                    tags = self.data_handler.load_dataset(
+                        database, "test", load_opts={"file_types": evaluator.REQUIRES}
+                    )
                     start = time.time()
                     model_stats = evaluator.run_evaluation(preds, tags, evaluator_opts)
                     end = time.time()

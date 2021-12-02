@@ -1,6 +1,7 @@
 import pickle
 import traceback
 from pathlib import Path
+import feather
 
 import pandas as pd
 
@@ -17,10 +18,12 @@ class DataLoader:
     since they do nothing by default.
     """
 
+    CALLBACKS = {}
+
     def __init__(self, structure):
         self.data = structure.get_copy()
 
-    def load_data_options(self, *args, **kwargs):
+    def dataset_options(self, *args, **kwargs):
         common_utils.print_warning(
             (
                 "WARNING! Calling load_data_options() method from the default DataLoader class which "
@@ -62,13 +65,16 @@ class DataLoader:
 
         classes_df = pd.read_csv(classes_file, skip_blank_lines=True)
         classes = (
-            classes_df.loc[classes_df["class_type"] == class_type]
+            classes_df.loc[
+                classes_df["class_type"]  # pylint: disable=unsubscriptable-object
+                == class_type
+            ]
             .tag.str.lower()
             .values
         )
         return classes
 
-    def load_dataset(self, database, paths, file_list, db_type, overwrite):
+    def generate_dataset(self, database, paths, file_list, db_type, overwrite):
         """[summary]
 
         Args:
@@ -78,7 +84,7 @@ class DataLoader:
             db_type ([type]): [description]
             overwrite ([type]): [description]
         """
-        db_opts = self.load_data_options(database)
+        db_opts = self.dataset_options(database)
         split = database.get("split", {})
         if split and db_type in split:
             tags_dir = paths["tags"]["training"]
@@ -104,3 +110,40 @@ class DataLoader:
                 print(traceback.format_exc())
                 self.data = None
         self.finalize_dataset()
+
+    def get_file_types(self, load_opts):
+        file_types = load_opts.get("file_types", "all")
+        if file_types == "all":
+            file_types = self.data.keys()
+        else:
+            # * Make sure we only have valid keys
+            file_types = [ft for ft in file_types if ft in self.data.keys()]
+        return file_types
+
+    def load_dataset(self, paths, db_type, load_opts=None):
+        # opts = common_utils.deepcopy(self.DEFAULT_LOADING_OPTIONS)
+        # if load_opts is not None and isinstance(load_opts, dict):
+        #     opts.update(load_opts)
+        file_types = self.get_file_types(load_opts)
+        # * Get paths
+
+        for key in file_types:
+            path = paths["save_dests"][db_type][key]
+            if not path.exists():
+                raise ValueError(
+                    "Database file {} not found. Please run check_datasets() before".format(
+                        str(path)
+                    )
+                )
+            tmp = self.load_dataset_file(path)
+            callback = self.CALLBACKS.get("onload", {}).get(key, None)
+            if callback:
+                tmp = callback(tmp)
+            self.data[key] = tmp
+
+    def load_dataset_file(self, file_name):
+        print("Loading file: ", file_name)
+        if file_name.suffix == ".feather":
+            return feather.read_dataframe(str(file_name))
+        else:
+            return pickle.load(open(file_name, "rb"))

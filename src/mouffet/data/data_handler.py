@@ -31,6 +31,7 @@ class DataHandler(ABC):
     OPTIONS_CLASS = DatabaseOptions
 
     DATA_STRUCTURE = DataStructure()
+    DATA_LOADERS = {"default": DataLoader}
 
     DB_TYPE_TRAINING = "training"
     DB_TYPE_VALIDATION = "validation"
@@ -38,9 +39,7 @@ class DataHandler(ABC):
 
     SPLIT_FUNCS = {}
 
-    LOADERS = {"default": DataLoader}
-
-    def __init__(self, opts, loader_cls=None):
+    def __init__(self, opts):
         self.opts = opts
         self.tmp_db_data = None
         self.databases = self.load_databases()
@@ -289,7 +288,7 @@ class DataHandler(ABC):
         split_opts = database.get("split", None)
         if not split_opts:
             raise ValueError("Split option must be provided for splitting")
-        split_func = self.SPLIT_FUNCS.get(database["name"], random_split)
+        split_func = self.SPLIT_FUNCS.get(database.name, random_split)
         split_props = []
         # * Make test split optional
         test_split = split_opts.get("test", 0)
@@ -352,7 +351,7 @@ class DataHandler(ABC):
 
     def save_dataset(self, data, paths, db_type):
         if data:
-            for key, value in data:
+            for key, value in data.items():
                 path = paths["save_dests"][db_type][key]
                 if path.suffix == ".pkl":
                     with open(ensure_path_exists(path, is_file=True), "wb") as f:
@@ -370,9 +369,9 @@ class DataHandler(ABC):
         pass
 
     def generate_dataset(self, database, paths, file_list, db_type, overwrite):
-        loader_cls = self.LOADERS[database.get("loader", "default")]
+        loader_cls = self.DATA_LOADERS[database.get(database.name, "default")]
         loader = loader_cls(self.DATA_STRUCTURE)
-        loader.load_dataset(database, paths, file_list, db_type, overwrite)
+        loader.generate_dataset(database, paths, file_list, db_type, overwrite)
         self.save_dataset(loader.data, paths, db_type)
 
     def check_dataset_exists(self, paths, db_type):
@@ -402,13 +401,6 @@ class DataHandler(ABC):
                 database = self.databases[database]
             self.check_dataset(database, db_types)
 
-    def load_file(self, file_name):
-        print("Loading file: ", file_name)
-        if file_name.suffix == ".feather":
-            return feather.read_dataframe(str(file_name))
-        else:
-            return pickle.load(open(file_name, "rb"))
-
     def merge_datasets(self, datasets):
         merged = self.DATA_STRUCTURE.get_copy()
         for dataset in datasets.values():
@@ -419,36 +411,33 @@ class DataHandler(ABC):
                     merged[key].append(dataset[key])
         return merged
 
-    def get_file_types(self, load_opts):
-        file_types = load_opts.get("file_types", "all")
-        if file_types == "all":
-            file_types = self.DATA_STRUCTURE.keys()
-        else:
-            # * Make sure we only have valid keys
-            file_types = [ft for ft in file_types if ft in self.DATA_STRUCTURE.keys()]
-        return file_types
-
     def load_dataset(self, database, db_type, load_opts=None):
-        load_opts = load_opts or {}
-        file_types = self.get_file_types(load_opts)
-        # * Get paths
         paths = self.get_database_paths(database)
-        res = self.DATA_STRUCTURE.get_copy()
+        loader_cls = self.DATA_LOADERS[database.get("loader", "default")]
+        loader = loader_cls(self.DATA_STRUCTURE)
+        loader.load_dataset(paths, db_type, load_opts)
+        return loader.data
 
-        for key in file_types:
-            path = paths["save_dests"][db_type][key]
-            if not path.exists():
-                raise ValueError(
-                    "Database file {} not found. Please run check_datasets() before".format(
-                        str(path)
-                    )
-                )
-            tmp = self.load_file(path)
-            callback = load_opts.get("onload_callbacks", {}).get(key, None)
-            if callback:
-                tmp = callback(tmp)
-            res[key] = tmp
-        return res
+        # load_opts = load_opts or {}
+        # file_types = self.get_file_types(load_opts)
+        # # * Get paths
+
+        # res = self.DATA_STRUCTURE.get_copy()
+
+        # for key in file_types:
+        #     path = paths["save_dests"][db_type][key]
+        #     if not path.exists():
+        #         raise ValueError(
+        #             "Database file {} not found. Please run check_datasets() before".format(
+        #                 str(path)
+        #             )
+        #         )
+        #     tmp = self.load_file(path)
+        #     callback = load_opts.get("onload_callbacks", {}).get(key, None)
+        #     if callback:
+        #         tmp = callback(tmp)
+        #     res[key] = tmp
+        # return res
 
     def get_database_options(self, name):
         return self.databases.get(name, None)
