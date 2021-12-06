@@ -381,9 +381,9 @@ class DataHandler(ABC):
         return True
 
     def check_dataset(self, database, db_types=None):
+        db_types = db_types or database.db_types
         paths = self.get_database_paths(database)
         file_lists = self.check_file_lists(database, paths, db_types)
-        db_types = db_types or database.db_types
         for db_type, file_list in file_lists.items():
             if db_types and db_type in db_types:
                 print("Checking database:", database["name"], "with type", db_type)
