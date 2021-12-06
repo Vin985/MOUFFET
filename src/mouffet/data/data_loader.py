@@ -113,6 +113,8 @@ class DataLoader:
 
     def get_file_types(self, load_opts):
         file_types = load_opts.get("file_types", "all")
+        if isinstance(file_types, str):
+            file_types = [file_types]
         if file_types == "all":
             file_types = self.data.keys()
         else:
