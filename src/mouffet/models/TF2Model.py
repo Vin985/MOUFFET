@@ -24,6 +24,7 @@ class TF2Model(DLModel):
         self.metrics = {}
         self.callbacks = []
         self.logs = {}
+        self.optimizer = None
 
     @property
     def n_parameters(self):
@@ -78,7 +79,7 @@ class TF2Model(DLModel):
             gradients = tape.gradient(
                 loss, self.model.trainable_variables  # pylint: disable=no-member
             )  # pylint: disable=no-member
-            self.model.optimizer.apply_gradients(
+            self.optimizer.apply_gradients(
                 zip(
                     gradients, self.model.trainable_variables
                 )  # pylint: disable=no-member
