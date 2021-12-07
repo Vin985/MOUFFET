@@ -113,11 +113,11 @@ class DataLoader:
 
     def get_file_types(self, load_opts):
         file_types = load_opts.get("file_types", "all")
-        if isinstance(file_types, str):
-            file_types = [file_types]
         if file_types == "all":
             file_types = self.data.keys()
         else:
+            if isinstance(file_types, str):
+                file_types = [file_types]
             # * Make sure we only have valid keys
             file_types = [ft for ft in file_types if ft in self.data.keys()]
         return file_types
@@ -126,6 +126,7 @@ class DataLoader:
         # opts = common_utils.deepcopy(self.DEFAULT_LOADING_OPTIONS)
         # if load_opts is not None and isinstance(load_opts, dict):
         #     opts.update(load_opts)
+        load_opts = load_opts or {}
         file_types = self.get_file_types(load_opts)
         # * Get paths
 
