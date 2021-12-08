@@ -61,3 +61,7 @@ class Evaluator(ABC):
                 tmp = getattr(self, func_name)(data, options)
                 res[to_plot] = tmp
         return res
+
+    @abstractmethod
+    def get_events(self, predictions, options, *args, **kwargs):
+        return []
