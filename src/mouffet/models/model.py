@@ -26,6 +26,9 @@ class Model(ABC):
         if opts:
             self.opts = opts
 
+    def check_options(self):
+        return True
+
     @property
     def n_parameters(self):
         return -1

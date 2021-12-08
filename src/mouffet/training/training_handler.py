@@ -84,13 +84,20 @@ class TrainingHandler(ModelHandler):
                 )
                 return
 
+            # *  Get model instance
+            model = self.get_model_instance(model_opts)
+            if not model.check_options():
+                common_utils.print_error(
+                    "Skipping training because options are invalid"
+                )
+                return
+
             # * Check datasets
             databases = self.get_scenario_databases_options(scenario)
             self.data_handler.check_datasets(
                 databases=databases, db_types=self.DB_TYPES
             )
-            # *  Get model instance
-            model = self.get_model_instance(model_opts)
+
             # * Prepare data for training (e.g. preprocessing)
             data = [
                 model.prepare_data(
