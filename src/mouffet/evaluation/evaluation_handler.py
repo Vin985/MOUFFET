@@ -263,7 +263,7 @@ class EvaluationHandler(ModelHandler):
 
             # * Duplicate database options
             database = self.data_handler.duplicate_database(db_opts)
-            model_stats = {}
+            eval_result = {}
             if database and database.has_type("test"):
                 self.data_handler.check_dataset(database, ["test"])
                 preds = self.get_predictions(model_opts, database)
@@ -272,41 +272,63 @@ class EvaluationHandler(ModelHandler):
                     "database": database.name,
                     "model": model_opts.model_id,
                     "class": database.class_type,
+                    "evaluator": evaluator_opts["type"],
                 }
                 stats_opts = {
                     "database_opts": str(database.updated_opts),
                     "model_opts": str(model_opts),
                 }
-                print(
-                    "\033[92m"
-                    + "Evaluating model {0} on test dataset {1} with evaluator {2}".format(
-                        model_opts.model_id, database.name, evaluator_opts["type"]
-                    )
-                    + "\033[0m"
-                )
                 evaluator_opts["scenario_info"] = stats_infos
                 evaluator = self.get_evaluator(evaluator_opts)
                 if evaluator:
-                    tags = self.data_handler.load_dataset(
-                        database, "test", load_opts={"file_types": evaluator.REQUIRES}
-                    )
-                    start = time.time()
-                    model_stats = evaluator.run_evaluation(preds, tags, evaluator_opts)
-                    end = time.time()
-                    model_stats["stats"] = pd.concat(
-                        [
-                            pd.DataFrame([stats_infos]),
-                            model_stats["stats"].assign(**stats_opts),
-                        ],
-                        axis=1,
-                    )
-                    model_stats["stats"]["PR_curve"] = evaluator_opts.get(
-                        "do_PR_curve", False
-                    )
-                    model_stats["stats"]["duration"] = round(end - start, 2)
-                    model_stats["stats"]["evaluator"] = evaluator_opts["type"]
+                    if self.opts.get("events_only", False):
+                        print(
+                            "\033[92m"
+                            + "Getting events for model {0} on dataset {1} with evaluator {2}".format(
+                                model_opts.model_id,
+                                database.name,
+                                evaluator_opts["type"],
+                            )
+                            + "\033[0m"
+                        )
+                        eval_result["events"] = evaluator.get_events(
+                            preds, evaluator_opts
+                        )
+                        eval_result["conf"] = dict(stats_infos, **stats_opts)
+                    else:
+                        print(
+                            "\033[92m"
+                            + "Evaluating model {0} on test dataset {1} with evaluator {2}".format(
+                                model_opts.model_id,
+                                database.name,
+                                evaluator_opts["type"],
+                            )
+                            + "\033[0m"
+                        )
 
-                    return model_stats
+                        tags = self.data_handler.load_dataset(
+                            database,
+                            "test",
+                            load_opts={"file_types": evaluator.REQUIRES},
+                        )
+                        start = time.time()
+                        eval_result = evaluator.run_evaluation(
+                            preds, tags, evaluator_opts
+                        )
+                        end = time.time()
+                        eval_result["stats"]["PR_curve"] = evaluator_opts.get(
+                            "do_PR_curve", False
+                        )
+                        eval_result["stats"]["duration"] = round(end - start, 2)
+
+                        eval_result["stats"] = pd.concat(
+                            [
+                                pd.DataFrame([stats_infos]),
+                                eval_result["stats"].assign(**stats_opts),
+                            ],
+                            axis=1,
+                        )
+                    return eval_result
         except Exception:
             print(traceback.format_exc())
             common_utils.print_error(
@@ -315,7 +337,13 @@ class EvaluationHandler(ModelHandler):
             return {}
 
     def evaluate(self):
-        stats = [self.evaluate_scenario(scenario) for scenario in self.scenarios]
+        res = [self.evaluate_scenario(scenario) for scenario in self.scenarios]
         if self.opts.get("save_results", True):
-            self.save_results(stats)
-        return stats
+            self.save_results(res)
+        return res
+
+    def get_events(self):
+        self.opts["events_only"] = True
+        # TODO: save events results?
+        self.opts["save_results"] = False
+        return self.evaluate()
