@@ -119,7 +119,7 @@ class TF2Model(DLModel):
         raise NotImplementedError()
 
     @abstractmethod
-    def init_optimizer(self, learning_rate):
+    def init_optimizer(self, learning_rate=None):
         raise NotImplementedError()
 
     def init_model(self):
@@ -158,6 +158,7 @@ class TF2Model(DLModel):
 
         """
         self.opts.add_option("training", True)
+
         self.logs = {}
 
         self.init_model()
@@ -252,8 +253,8 @@ class TF2Model(DLModel):
                     validation_sampler,
                     epoch_save_step,
                 )
-                train_loss = self.metrics["train_loss"].result()
-                val_loss = self.metrics["validation_loss"].result()
+                # train_loss = self.metrics["train_loss"].result()
+                # val_loss = self.metrics["validation_loss"].result()
 
                 if self.model.stop_training:  # pylint: disable=no-member
                     stop = True
