@@ -369,7 +369,7 @@ class DataHandler(ABC):
         pass
 
     def generate_dataset(self, database, paths, file_list, db_type, overwrite):
-        loader_cls = self.DATA_LOADERS[database.get(database.name, "default")]
+        loader_cls = self.DATA_LOADERS[database.get("loader", "default")]
         loader = loader_cls(self.DATA_STRUCTURE)
         loader.generate_dataset(database, paths, file_list, db_type, overwrite)
         self.save_dataset(loader.data, paths, db_type)
