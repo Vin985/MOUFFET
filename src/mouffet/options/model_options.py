@@ -4,7 +4,7 @@ import shutil
 from copy import deepcopy
 
 from .options import Options
-from ..utils import common as common_utils
+from ..utils import common_utils
 
 
 class ModelOptions(Options):

@@ -6,11 +6,11 @@ from pathlib import Path
 import feather
 import pandas as pd
 
-from mouffet.data.data_loader import DataLoader
+from .data_loader import DataLoader
 
-from ..options.database_options import DatabaseOptions
-from ..utils import common as common_utils
-from ..utils.file import ensure_path_exists, get_full_path, list_files
+from ..options import DatabaseOptions
+
+from ..utils import common_utils, file_utils
 from .split import random_split
 from .data_structure import DataStructure
 
@@ -205,15 +205,15 @@ class DataHandler(ABC):
 
         for db_type in database.db_types:
 
-            db_type_dir = get_full_path(database[db_type + "_dir"], root_dir)
+            db_type_dir = file_utils.get_full_path(database[db_type + "_dir"], root_dir)
             paths[db_type + "_dir"] = db_type_dir
-            paths["data"][db_type] = get_full_path(
+            paths["data"][db_type] = file_utils.get_full_path(
                 paths["data"]["default"], db_type_dir
             )
-            paths["tags"][db_type] = get_full_path(
+            paths["tags"][db_type] = file_utils.get_full_path(
                 paths["tags"]["default"], db_type_dir
             )
-            dest_dir = get_full_path(paths["dest"]["default"], db_type_dir)
+            dest_dir = file_utils.get_full_path(paths["dest"]["default"], db_type_dir)
             paths["dest"][db_type] = dest_dir
             paths["file_list"][db_type] = database.get(
                 db_type + "_file_list_path", dest_dir / (db_type + "_file_list.csv")
@@ -240,7 +240,9 @@ class DataHandler(ABC):
     @staticmethod
     def save_file_list(db_type, file_list, paths):
         file_list_path = paths["dest"][db_type] / (db_type + "_file_list.csv")
-        with open(ensure_path_exists(file_list_path, is_file=True), mode="w") as f:
+        with open(
+            file_utils.ensure_path_exists(file_list_path, is_file=True), mode="w"
+        ) as f:
             writer = csv.writer(f)
             for name in file_list:
                 writer.writerow([name])
@@ -250,7 +252,7 @@ class DataHandler(ABC):
         res = {}
         db_types = db_types or database.db_types
         for db_type in db_types:
-            res[db_type] = list_files(
+            res[db_type] = file_utils.list_files(
                 paths["data"][db_type], database.data_extensions, database.recursive
             )
         return res
@@ -354,7 +356,9 @@ class DataHandler(ABC):
             for key, value in data.items():
                 path = paths["save_dests"][db_type][key]
                 if path.suffix == ".pkl":
-                    with open(ensure_path_exists(path, is_file=True), "wb") as f:
+                    with open(
+                        file_utils.ensure_path_exists(path, is_file=True), "wb"
+                    ) as f:
                         pickle.dump(value, f, -1)
                         print("Saved file: ", path)
                 elif path.suffix == ".feather":

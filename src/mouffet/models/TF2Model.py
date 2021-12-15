@@ -2,15 +2,12 @@ import copy
 from abc import abstractmethod
 from pathlib import Path
 
-
 import numpy as np
 import tensorflow as tf
-import tensorflow_addons as tfa
 from tqdm import tqdm
 
-import mouffet.utils.common as common_utils
-
-from .dlmodel import DLModel
+from ..utils import common_utils
+from . import DLModel
 
 
 class TF2Model(DLModel):

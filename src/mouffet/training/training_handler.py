@@ -5,11 +5,9 @@ from datetime import datetime
 
 import pandas as pd
 
-from ..data.data_handler import DataHandler
-from ..options.model_options import ModelOptions
-from ..utils import common as common_utils
-from ..utils import file as file_utils
-from ..utils.model_handler import ModelHandler
+from ..data import DataHandler
+from ..options import ModelOptions
+from ..utils import ModelHandler, common_utils, file_utils
 
 
 class TrainingHandler(ModelHandler):

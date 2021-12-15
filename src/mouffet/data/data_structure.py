@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-import mouffet.utils.common as common_utils
+from ..utils import common_utils
 
 
 class DataStructure:

@@ -1,8 +1,7 @@
-from abc import abstractmethod
 import logging
+from abc import abstractmethod
 
-import mouffet.utils.common as common_utils
-
+from ..utils import common_utils
 from .model import Model
 
 

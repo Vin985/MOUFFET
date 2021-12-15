@@ -2,7 +2,7 @@ from pathlib import Path
 
 import yaml
 
-from . import common as common_utils
+from . import common_utils
 
 
 def ensure_path_exists(path, is_file=False):

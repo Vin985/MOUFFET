@@ -5,7 +5,7 @@ import feather
 
 import pandas as pd
 
-from ..utils import common as common_utils
+from ..utils import common_utils
 
 
 class DataLoader:

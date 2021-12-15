@@ -2,11 +2,10 @@ import pydoc
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from ..data.data_handler import DataHandler
-from ..models.dlmodel import DLModel
-from ..options.model_options import ModelOptions
-from ..utils import common as common_utils
-from ..utils import file as file_utils
+from ..data import DataHandler
+from ..models import DLModel
+from ..options import ModelOptions
+from ..utils import common_utils, file_utils
 
 
 class ModelHandler(ABC):

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from ..utils import common as common_utils
+from ..utils import common_utils
 
 
 class Options:
@@ -51,7 +51,9 @@ class Options:
         else:
             if name in self.opts:
                 if isinstance(self.opts[name], dict):
-                    self.opts[name] = common_utils.deep_dict_update(value, self.opts[name], copy=True)
+                    self.opts[name] = common_utils.deep_dict_update(
+                        value, self.opts[name], copy=True
+                    )
             else:
                 self.opts[name] = value
 

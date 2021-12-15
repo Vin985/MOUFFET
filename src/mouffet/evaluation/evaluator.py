@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 import pandas as pd
 
-from ..utils.common import deep_dict_update, expand_options_dict, listdict2dictlist
+from ..utils import common_utils
 from ..plotting import plot
 
 
@@ -31,11 +31,11 @@ class Evaluator(ABC):
         return {"stats": None, "matches": None}
 
     def get_PR_scenarios(self, options):
-        opts = deep_dict_update(
+        opts = common_utils.deep_dict_update(
             self.DEFAULT_PR_CURVE_OPTIONS, options.pop("PR_curve", {})
         )
         options[opts["variable"]] = opts["values"]
-        scenarios = expand_options_dict(options)
+        scenarios = common_utils.expand_options_dict(options)
         return scenarios
 
     def get_PR_curve(self, predictions, tags, options):
@@ -44,10 +44,10 @@ class Evaluator(ABC):
         for scenario in scenarios:
             tmp.append(self.evaluate_scenario(predictions, tags, scenario))
 
-        res = listdict2dictlist(tmp)
+        res = common_utils.listdict2dictlist(tmp)
         res["matches"] = pd.concat(res["matches"])
         res["stats"] = pd.concat(res["stats"])
-        res["plots"] = listdict2dictlist(res.get("plots", []))
+        res["plots"] = common_utils.listdict2dictlist(res.get("plots", []))
         if options.get("draw_plots", True):
             res = plot.plot_PR_curve(res, options)  # pylint: disable=no-member
         return res
