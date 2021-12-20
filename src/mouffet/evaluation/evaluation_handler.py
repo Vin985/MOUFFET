@@ -11,6 +11,7 @@ import pandas as pd
 from ..options import ModelOptions
 from ..plotting import plot
 from ..utils import ModelHandler, common_utils, file_utils
+from . import EVALUATORS
 
 
 class EvaluationHandler(ModelHandler):
@@ -44,7 +45,7 @@ class EvaluationHandler(ModelHandler):
 
     PREDICTIONS_STATS_FILE_NAME = "predictions_stats.csv"
 
-    EVALUATORS = {}
+    # EVALUATORS = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -114,15 +115,15 @@ class EvaluationHandler(ModelHandler):
             feather.write_dataframe(predictions, pred_file)
         return predictions
 
-    def get_evaluator(self, evaluator_opts):
-        evaluator = self.EVALUATORS.get(evaluator_opts["type"], None)
-        if not evaluator:
-            print(
-                "Evaluator {} not found. Please make sure this evaluator exists."
-                + "Skipping."
-            )
-            return None
-        return evaluator
+    # def get_evaluator(self, evaluator_opts):
+    #     evaluator = self.EVALUATORS.get(evaluator_opts["type"], None)
+    #     if not evaluator:
+    #         print(
+    #             "Evaluator {} not found. Please make sure this evaluator exists."
+    #             + "Skipping."
+    #         )
+    #         return None
+    #     return evaluator
 
     def consolidate_results(self, results):
         res = common_utils.listdict2dictlist(results)
@@ -270,14 +271,14 @@ class EvaluationHandler(ModelHandler):
                     "database": database.name,
                     "model": model_opts.model_id,
                     "class": database.class_type,
-                    "evaluator": evaluator_opts["type"],
+                    "evaluator": evaluator_opts.get("type", None),
                 }
                 stats_opts = {
                     "database_opts": str(database.updated_opts),
                     "model_opts": str(model_opts),
                 }
                 evaluator_opts["scenario_info"] = stats_infos
-                evaluator = self.get_evaluator(evaluator_opts)
+                evaluator = EVALUATORS[evaluator_opts.get("type", None)]
                 if evaluator:
                     if self.opts.get("events_only", False):
                         print(
