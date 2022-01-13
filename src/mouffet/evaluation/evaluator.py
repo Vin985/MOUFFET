@@ -23,7 +23,8 @@ class Evaluator(ABC):
 
     def evaluate_scenario(self, predictions, tags, options):
         res = self.evaluate(predictions, tags, options)
-        res["stats"]["options"] = str(options)
+        if res:
+            res["stats"]["options"] = str(options)
         return res
 
     @abstractmethod
@@ -62,6 +63,5 @@ class Evaluator(ABC):
                 res[to_plot] = tmp
         return res
 
-    @abstractmethod
     def get_events(self, predictions, options, *args, **kwargs):
         return []

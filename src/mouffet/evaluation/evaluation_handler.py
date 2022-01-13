@@ -127,11 +127,12 @@ class EvaluationHandler(ModelHandler):
 
     def consolidate_results(self, results):
         res = common_utils.listdict2dictlist(results)
-        res["matches"] = pd.concat(res["matches"])
-        res["stats"] = pd.concat(res["stats"])
-        res["plots"] = common_utils.listdict2dictlist(
-            res.get("plots", []), flatten=True
-        )
+        if res:
+            res["matches"] = pd.concat(res["matches"])
+            res["stats"] = pd.concat(res["stats"])
+            res["plots"] = common_utils.listdict2dictlist(
+                res.get("plots", []), flatten=True
+            )
         return res
 
     def save_pr_curve_data(self, pr_df):
@@ -149,45 +150,47 @@ class EvaluationHandler(ModelHandler):
 
     def save_results(self, results):
         res = self.consolidate_results(results)
-        cur_time = datetime.now()
-        res_dir = Path(self.opts.get("evaluation_dir", ".")) / cur_time.strftime(
-            "%Y%m%d"
-        )
-        prefix = cur_time.strftime("%H%M%S")
-        eval_id = self.opts.get("id", "")
-        res["stats"].to_csv(
-            str(
-                file_utils.ensure_path_exists(
-                    res_dir / ("_".join(filter(None, [prefix, eval_id, "stats.csv"]))),
-                    is_file=True,
-                )
-            ),
-            index=False,
-        )
+        if res:
+            cur_time = datetime.now()
+            res_dir = Path(self.opts.get("evaluation_dir", ".")) / cur_time.strftime(
+                "%Y%m%d"
+            )
+            prefix = cur_time.strftime("%H%M%S")
+            eval_id = self.opts.get("id", "")
+            res["stats"].to_csv(
+                str(
+                    file_utils.ensure_path_exists(
+                        res_dir
+                        / ("_".join(filter(None, [prefix, eval_id, "stats.csv"]))),
+                        is_file=True,
+                    )
+                ),
+                index=False,
+            )
 
-        pr_df = res["stats"].loc[
-            res["stats"]["PR_curve"] == True  # pylint: disable=singleton-comparison
-        ]
+            pr_df = res["stats"].loc[
+                res["stats"]["PR_curve"] == True  # pylint: disable=singleton-comparison
+            ]
 
-        if not pr_df.empty:
-            self.save_pr_curve_data(pr_df)
+            if not pr_df.empty:
+                self.save_pr_curve_data(pr_df)
 
-        plots = res.get("plots", {})
-        if plots:
-            for key, values in plots.items():
-                # pylint: disable=no-member
-                plot.save_as_pdf(
-                    values,
-                    res_dir
-                    / (
-                        "_".join(
-                            filter(
-                                None,
-                                [prefix, eval_id, "{}.pdf".format(key)],
+            plots = res.get("plots", {})
+            if plots:
+                for key, values in plots.items():
+                    # pylint: disable=no-member
+                    plot.save_as_pdf(
+                        values,
+                        res_dir
+                        / (
+                            "_".join(
+                                filter(
+                                    None,
+                                    [prefix, eval_id, "{}.pdf".format(key)],
+                                )
                             )
-                        )
-                    ),
-                )
+                        ),
+                    )
 
     def expand_scenarios(self, element_type):
         elements = self.opts[element_type]
@@ -261,7 +264,16 @@ class EvaluationHandler(ModelHandler):
                 common_utils.deep_dict_update(db_opts, model_opts.databases_options)
 
             # * Duplicate database options
-            database = self.data_handler.duplicate_database(db_opts)
+            try:
+                database = self.data_handler.duplicate_database(db_opts)
+            except KeyError:
+                common_utils.print_error(
+                    (
+                        "Database '{}' does not exists. Please check that the "
+                        + " database is properly defined in the data configuration file"
+                    ).format(db_opts["name"])
+                )
+                return {}
             eval_result = {}
             if database and database.has_type("test"):
                 self.data_handler.check_dataset(database, ["test"])
@@ -315,18 +327,19 @@ class EvaluationHandler(ModelHandler):
                             preds, tags, evaluator_opts
                         )
                         end = time.time()
-                        eval_result["stats"]["PR_curve"] = evaluator_opts.get(
-                            "do_PR_curve", False
-                        )
-                        eval_result["stats"]["duration"] = round(end - start, 2)
+                        if eval_result:
+                            eval_result["stats"]["PR_curve"] = evaluator_opts.get(
+                                "do_PR_curve", False
+                            )
+                            eval_result["stats"]["duration"] = round(end - start, 2)
 
-                        eval_result["stats"] = pd.concat(
-                            [
-                                pd.DataFrame([stats_infos]),
-                                eval_result["stats"].assign(**stats_opts),
-                            ],
-                            axis=1,
-                        )
+                            eval_result["stats"] = pd.concat(
+                                [
+                                    pd.DataFrame([stats_infos]),
+                                    eval_result["stats"].assign(**stats_opts),
+                                ],
+                                axis=1,
+                            )
                     return eval_result
         except Exception:
             print(traceback.format_exc())
