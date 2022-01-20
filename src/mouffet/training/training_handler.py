@@ -5,6 +5,8 @@ from datetime import datetime
 
 import pandas as pd
 
+from mouffet.utils.common import deep_dict_update
+
 from ..data import DataHandler
 from ..options import ModelOptions
 from ..utils import ModelHandler, common_utils, file_utils
@@ -19,6 +21,28 @@ class TrainingHandler(ModelHandler):
         DataHandler.DB_TYPE_VALIDATION,
     ]
 
+    def check_repeat(self, scenarios):
+        res = []
+        for scenario in scenarios:
+            repeat = int(scenario.get("repeat_scenario", 0))
+            if repeat:
+                for i in range(1, repeat + 1):
+                    tmp = copy.deepcopy(scenario)
+                    tmp["name"] = tmp["name"] + "_rep" + str(i)
+                    res.append(tmp)
+            else:
+                res.append(scenario)
+
+        return res
+
+    # def check_cross_validation(self, scenarios):
+    #     return scenarios
+
+    def post_process_scenarios(self, scenarios):
+        scenarios = self.check_repeat(scenarios)
+        # scenarios = self.check_cross_validation(scenarios)
+        return scenarios
+
     def expand_training_scenarios(self):
         scenarios = []
         if "scenarios" in self.opts:
@@ -31,6 +55,7 @@ class TrainingHandler(ModelHandler):
                     scenarios.append(res)
         else:
             scenarios.append(dict(self.opts))
+        scenarios = self.post_process_scenarios(scenarios)
         return scenarios
 
     def load_scenarios(self):
