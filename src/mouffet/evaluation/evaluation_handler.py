@@ -128,11 +128,14 @@ class EvaluationHandler(ModelHandler):
     def consolidate_results(self, results):
         res = common_utils.listdict2dictlist(results)
         if res:
-            res["matches"] = pd.concat(res["matches"])
-            res["stats"] = pd.concat(res["stats"])
-            res["plots"] = common_utils.listdict2dictlist(
-                res.get("plots", []), flatten=True
-            )
+            if "matches" in res:
+                res["matches"] = pd.concat(res["matches"])
+            if "stats" in res:
+                res["stats"] = pd.concat(res["stats"])
+            if "plots" in res:
+                res["plots"] = common_utils.listdict2dictlist(
+                    res.get("plots", []), flatten=True
+                )
         return res
 
     def save_pr_curve_data(self, pr_df):
@@ -150,24 +153,25 @@ class EvaluationHandler(ModelHandler):
 
     def save_results(self, results):
         res = self.consolidate_results(results)
+        file_names = {}
         if res:
+            prefix = ""
             cur_time = datetime.now()
-            res_dir = Path(self.opts.get("evaluation_dir", ".")) / cur_time.strftime(
-                "%Y%m%d"
-            )
-            prefix = cur_time.strftime("%H%M%S")
-            eval_id = self.opts.get("id", "")
-            res["stats"].to_csv(
-                str(
-                    file_utils.ensure_path_exists(
-                        res_dir
-                        / ("_".join(filter(None, [prefix, eval_id, "stats.csv"]))),
-                        is_file=True,
-                    )
-                ),
-                index=False,
-            )
+            res_dir = Path(self.opts.get("evaluation_dir", "."))
 
+            if self.opts.get("save_use_date_subfolder", True):
+                res_dir /= cur_time.strftime("%Y%m%d")
+            if self.opts.get("save_use_time_prefix", True):
+                prefix = cur_time.strftime("%H%M%S")
+            eval_id = self.opts.get("id", "")
+            stats_file_path = str(
+                file_utils.ensure_path_exists(
+                    res_dir / ("_".join(filter(None, [prefix, eval_id, "stats.csv"]))),
+                    is_file=True,
+                )
+            )
+            res["stats"].to_csv(stats_file_path, index=False)
+            file_names["stats"] = stats_file_path
             pr_df = res["stats"].loc[
                 res["stats"]["PR_curve"] == True  # pylint: disable=singleton-comparison
             ]
@@ -179,18 +183,20 @@ class EvaluationHandler(ModelHandler):
             if plots:
                 for key, values in plots.items():
                     # pylint: disable=no-member
+                    plot_file_path = res_dir / (
+                        "_".join(
+                            filter(
+                                None,
+                                [prefix, eval_id, "{}.pdf".format(key)],
+                            )
+                        )
+                    )
                     plot.save_as_pdf(
                         values,
-                        res_dir
-                        / (
-                            "_".join(
-                                filter(
-                                    None,
-                                    [prefix, eval_id, "{}.pdf".format(key)],
-                                )
-                            )
-                        ),
+                        plot_file_path,
                     )
+                    file_names["plot_" + key] = plot_file_path
+        return file_names
 
     def expand_scenarios(self, element_type):
         elements = self.opts[element_type]
@@ -284,6 +290,8 @@ class EvaluationHandler(ModelHandler):
                     "model": model_opts.model_id,
                     "class": database.class_type,
                     "evaluator": evaluator_opts.get("type", None),
+                    # TODO: See where id is
+                    "evaluation_id": self.opts.get("id", ""),
                 }
                 stats_opts = {
                     "database_opts": str(database.updated_opts),
