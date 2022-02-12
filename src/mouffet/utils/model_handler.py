@@ -75,7 +75,7 @@ class ModelHandler(ABC):
         return dh
 
     @classmethod
-    def load_model(cls, model_opts):
+    def load_model(cls, model_opts, ignore_parent_path=False):
         """Load a model from the options provided by model_opts. Note: the options
         saved during training will be loaded and overriden by the relevant options from
         model_opts (especially the paths). One exception is the "id" and "id_prefixes" options
@@ -93,7 +93,8 @@ class ModelHandler(ABC):
             Path(model_opts.model_dir)
             / model_opts.model_id
             / str(version)
-            / "network_opts.yaml"
+            / "network_opts.yaml",
+            ignore_parent_path,
         )
         old_opts["data_config"] = model_opts.get("data_config", "")
         # * To load the model, we use the old opts updated by the scenario, except for the id
