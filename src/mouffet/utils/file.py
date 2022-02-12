@@ -6,6 +6,8 @@ from . import common_utils
 
 
 def ensure_path_exists(path, is_file=False):
+    if isinstance(path, str):
+        path = Path(path)
     if is_file:
         tmp = path.parent
     else:
@@ -47,8 +49,10 @@ def load_yaml(path):
         return config
 
 
-def load_config(opts_path):
+def load_config(opts_path, ignore_parent_path=False):
     opts = load_yaml(opts_path)
+    if ignore_parent_path:
+        return opts
     parent_path = opts.get("parent_path", "")
     if parent_path:
         parent = load_config(parent_path)
