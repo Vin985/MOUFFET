@@ -327,6 +327,7 @@ class TF2Model(DLModel):
         self.model.save_weights(path)  # pylint: disable=no-member
 
     def load_weights(self):
+        print("Loading pre-trained weights")
         self.model.load_weights(  # pylint: disable=no-member
             self.opts.get_weights_path()
         )
