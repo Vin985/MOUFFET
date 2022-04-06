@@ -127,3 +127,15 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+examples/tensorflow/results/models/models_stats.csv
+examples/tensorflow/results/models/simple_no_augment/1/databases.yaml
+examples/tensorflow/results/models/simple_no_augment/10/databases.yaml
+examples/tensorflow/results/models/simple_no_augment/11/databases.yaml
+examples/tensorflow/results/models/simple_no_augment/2/databases.yaml
+examples/tensorflow/results/models/simple_no_augment/3/databases.yaml
+examples/tensorflow/results/models/simple_no_augment/4/databases.yaml
+examples/tensorflow/results/models/simple_no_augment/5/databases.yaml
+examples/tensorflow/results/models/simple_no_augment/6/databases.yaml
+examples/tensorflow/results/models/simple_no_augment/7/databases.yaml
+examples/tensorflow/results/models/simple_no_augment/8/databases.yaml
+examples/tensorflow/results/models/simple_no_augment/9/databases.yaml
