@@ -1,0 +1,19 @@
+data_config: "examples/tensorflow/config/data_config.yaml"
+
+model_dir: 'examples/tensorflow/results/models'
+
+
+class: ".models.SimpleModel"
+
+databases: ["tf_flowers"]
+
+n_epochs: 1
+shuffle_data: True
+batch_size: 32
+augment_data: True
+
+scenarios:
+  - name: "simple_no_augment"
+    augment_data: False
+  - name: "simple_augment"
+    augment_data: True
