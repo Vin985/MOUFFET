@@ -101,7 +101,7 @@ class DataHandler(ABC):
         name = name or new_opts.get("name", "")
         if not name:
             raise AttributeError(
-                "A valid database name should be provided, either with the name"
+                "A valid database name should be provided, either with the name option "
                 + "or as a key in the new_opts dict"
             )
         if name in self.databases:
@@ -415,10 +415,14 @@ class DataHandler(ABC):
                     merged[key].append(dataset[key])
         return merged
 
-    def load_dataset(self, database, db_type, load_opts=None):
-        paths = self.get_database_paths(database)
+    def get_loader(self, database):
         loader_cls = self.DATA_LOADERS[database.get("loader", "default")]
         loader = loader_cls(self.DATA_STRUCTURE)
+        return loader
+
+    def load_dataset(self, database, db_type, load_opts=None):
+        paths = self.get_database_paths(database)
+        loader = self.get_loader(database)
         loader.load_dataset(paths, db_type, load_opts)
         return loader.data
 
@@ -464,8 +468,7 @@ class DataHandler(ABC):
             res = self.merge_datasets(res)
         return res
 
-    @abstractmethod
-    def get_summary(self, dataset):
+    def summarize_dataset(self, dataset):
         return {}
 
     def get_summaries(
@@ -488,7 +491,7 @@ class DataHandler(ABC):
                 )
                 dataset = self.load_dataset(database, db_type, load_opts)
 
-                summary = self.get_summary(dataset)
+                summary = self.summarize_dataset(dataset)
 
                 if not database["name"] in res:
                     res[database["name"]] = {}
