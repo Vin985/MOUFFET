@@ -11,6 +11,11 @@ class DLModel(Model):
     NAME = "DLMODEL"
     NETWORK_OPTION_FILENAME = "network_opts.yaml"
 
+    def init_model(self):
+        self.model = self.create_model()
+        if "weights_opts" in self.opts or self.opts.get("inference", False):
+            self.load_weights()
+
     @abstractmethod
     def create_model(self):
         """Basic implementation of model creation for deep learning models. By default only creates

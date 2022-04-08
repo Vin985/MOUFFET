@@ -134,6 +134,7 @@ class TrainingHandler(ModelHandler):
             train_start = time.time()
             # * Perform training
             train_stats = model.train(*data)
+            model.save_model()
             end = time.time()
 
             # * Save model training information

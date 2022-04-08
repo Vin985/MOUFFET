@@ -74,12 +74,15 @@ class EvaluationHandler(ModelHandler):
             + ".feather"
         )
 
+    def on_get_predictions_end(self, preds):
+        return preds
+
     def get_predictions(self, model_opts, database):
         preds_dir = self.get_predictions_dir(model_opts, database)
         file_name = self.get_predictions_file_name(model_opts, database)
         pred_file = preds_dir / file_name
         if not model_opts.get("reclassify", False) and pred_file.exists():
-            predictions = feather.read_dataframe(pred_file)
+            preds = feather.read_dataframe(pred_file)
         else:
             # * Load predictions stats database
             scenario_info = {}
@@ -93,7 +96,7 @@ class EvaluationHandler(ModelHandler):
             model_opts.opts["inference"] = True
             common_utils.print_info("Loading model with options: " + str(model_opts))
             model = self.load_model(model_opts)
-            predictions, infos = self.classify_database(model, database, db_type="test")
+            preds, infos = self.classify_database(model, database, db_type="test")
 
             # * save classification stats
             scenario_info["date"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
@@ -112,8 +115,9 @@ class EvaluationHandler(ModelHandler):
             preds_stats.to_csv(preds_stats_path, index=False)
 
             pred_file.parent.mkdir(parents=True, exist_ok=True)
-            feather.write_dataframe(predictions, pred_file)
-        return predictions
+            feather.write_dataframe(preds, pred_file)
+        preds = self.on_get_predictions_end(preds)
+        return preds
 
     # def get_evaluator(self, evaluator_opts):
     #     evaluator = self.EVALUATORS.get(evaluator_opts["type"], None)
@@ -257,6 +261,70 @@ class EvaluationHandler(ModelHandler):
             return True
         return False
 
+    def perform_evaluation(
+        self, evaluator, evaluation_data, scenario_infos, scenario_opts
+    ):
+        eval_result = {}
+        # if self.opts.get("events_only", False):
+        #     print(
+        #         "\033[92m"
+        #         + "Getting events for model {0} on dataset {1} with evaluator {2}".format(
+        #             scenario_infos["model"],
+        #             scenario_infos["database"],
+        #             scenario_infos["evaluator"],
+        #         )
+        #         + "\033[0m"
+        #     )
+        #     eval_result["events"] = evaluator.get_events(
+        #         evaluation_data, scenario_opts["evaluator_opts"]
+        #     )
+        #     eval_result["conf"] = dict(scenario_infos, **scenario_opts)
+        # else:
+        print(
+            "\033[92m"
+            + "Processing model {0} on dataset {1} with evaluator {2}".format(
+                scenario_infos["model"],
+                scenario_infos["database"],
+                scenario_infos["evaluator"],
+            )
+            + "\033[0m"
+        )
+
+        start = time.time()
+        eval_result = evaluator.run_evaluation(
+            evaluation_data, scenario_opts["evaluator_opts"], scenario_infos
+        )
+        end = time.time()
+        if eval_result:
+            eval_result["stats"]["PR_curve"] = scenario_opts["evaluator_opts"].get(
+                "do_PR_curve", False
+            )
+            eval_result["stats"]["duration"] = round(end - start, 2)
+
+            eval_result["stats"] = pd.concat(
+                [
+                    pd.DataFrame([scenario_infos]),
+                    eval_result["stats"].assign(
+                        **{key: str(value) for key, value in scenario_opts.items()}
+                    ),
+                ],
+                axis=1,
+            )
+        return eval_result
+
+    def get_evaluation_data(self, evaluator, database, model_opts, evaluator_opts):
+        self.data_handler.check_dataset(database, ["test"])
+        preds = self.get_predictions(model_opts, database)
+        if evaluator_opts.get("filter_only", False):
+            tags = None
+        else:
+            tags = self.data_handler.load_dataset(
+                database,
+                "test",
+                load_opts={"file_types": evaluator.REQUIRES},
+            )
+        return preds, tags
+
     def evaluate_scenario(self, opts):
         try:
             db_opts, model_opts, evaluator_opts = opts
@@ -282,72 +350,31 @@ class EvaluationHandler(ModelHandler):
                 return {}
             eval_result = {}
             if database and database.has_type("test"):
-                self.data_handler.check_dataset(database, ["test"])
-                preds = self.get_predictions(model_opts, database)
-                preds = preds.rename(columns={"recording_path": "recording_id"})
-                stats_infos = {
+                scenario_infos = {
                     "database": database.name,
                     "model": model_opts.model_id,
                     "class": database.class_type,
                     "evaluator": evaluator_opts.get("type", None),
-                    # TODO: See where id is
                     "evaluation_id": self.opts.get("id", ""),
                 }
-                stats_opts = {
-                    "database_opts": str(database.updated_opts),
-                    "model_opts": str(model_opts),
+
+                scenario_opts = {
+                    "evaluator_opts": evaluator_opts,
+                    "database_opts": database.updated_opts,
+                    "model_opts": model_opts,
                 }
-                evaluator_opts["scenario_info"] = stats_infos
+                evaluator_opts["scenario_info"] = scenario_infos
                 evaluator = EVALUATORS[evaluator_opts.get("type", None)]
+
                 if evaluator:
-                    if self.opts.get("events_only", False):
-                        print(
-                            "\033[92m"
-                            + "Getting events for model {0} on dataset {1} with evaluator {2}".format(
-                                model_opts.model_id,
-                                database.name,
-                                evaluator_opts["type"],
-                            )
-                            + "\033[0m"
-                        )
-                        eval_result["events"] = evaluator.get_events(
-                            preds, evaluator_opts
-                        )
-                        eval_result["conf"] = dict(stats_infos, **stats_opts)
-                    else:
-                        print(
-                            "\033[92m"
-                            + "Evaluating model {0} on test dataset {1} with evaluator {2}".format(
-                                model_opts.model_id,
-                                database.name,
-                                evaluator_opts["type"],
-                            )
-                            + "\033[0m"
-                        )
+                    evaluation_data = self.get_evaluation_data(
+                        evaluator, database, model_opts, evaluator_opts
+                    )
 
-                        tags = self.data_handler.load_dataset(
-                            database,
-                            "test",
-                            load_opts={"file_types": evaluator.REQUIRES},
-                        )
-                        start = time.time()
-                        eval_result = evaluator.run_evaluation(
-                            preds, tags, evaluator_opts
-                        )
-                        end = time.time()
-                        if eval_result:
-                            eval_result["stats"]["PR_curve"] = evaluator_opts.get(
-                                "do_PR_curve", False
-                            )
-                            eval_result["stats"]["duration"] = round(end - start, 2)
+                    eval_result = self.perform_evaluation(
+                        evaluator, evaluation_data, scenario_infos, scenario_opts
+                    )
 
-                            eval_result["stats"] = pd.concat(
-                                [
-                                    pd.DataFrame([stats_infos]),
-                                    eval_result["stats"].assign(**stats_opts),
-                                ],
-                                axis=1,
-                            )
                     return eval_result
         except Exception:
             print(traceback.format_exc())
@@ -361,9 +388,3 @@ class EvaluationHandler(ModelHandler):
         if self.opts.get("save_results", True):
             self.save_results(res)
         return res
-
-    def get_events(self):
-        self.opts["events_only"] = True
-        # TODO: save events results?
-        self.opts["save_results"] = False
-        return self.evaluate()

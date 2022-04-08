@@ -119,11 +119,6 @@ class TF2Model(DLModel):
     def init_optimizer(self, learning_rate=None):
         raise NotImplementedError()
 
-    def init_model(self):
-        self.model = self.create_model()
-        if "weights_opts" in self.opts or self.opts.get("inference", False):
-            self.load_weights()
-
     def add_callbacks(self):
         early_stopping = self.opts.get("early_stopping", {})
         if early_stopping:
@@ -283,7 +278,7 @@ class TF2Model(DLModel):
                 # training_stats["train_loss"] = train_loss
                 # training_stats["val_loss"] = val_loss
 
-        self.save_model()
+        # self.save_model()
 
         self.callbacks.on_train_end(logs=self.logs)
 

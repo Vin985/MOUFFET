@@ -15,20 +15,24 @@ class Evaluator(ABC):
 
     DEFAULT_PLOTS = []
 
-    def run_evaluation(self, predictions, tags, options):
-        if options.get("do_PR_curve", False):
-            return self.get_PR_curve(predictions, tags, options)
+    def run_evaluation(self, data, options, infos):
+        res = {}
+        if options.get("filter_only", False):
+            predictions, _ = data
+            res["events"] = self.filter_predictions(predictions, options)
+            res["stats"] = {}
+        elif options.get("do_PR_curve", False):
+            res = self.get_PR_curve(data, options, infos)
         else:
-            return self.evaluate_scenario(predictions, tags, options)
+            res = self.evaluate_scenario(data, options, infos)
+        return res
 
-    def evaluate_scenario(self, predictions, tags, options):
-        res = self.evaluate(predictions, tags, options)
-        if res:
-            res["stats"]["options"] = str(options)
+    def evaluate_scenario(self, data, options, infos):
+        res = self.evaluate(data, options, infos)
         return res
 
     @abstractmethod
-    def evaluate(self, predictions, tags, options):
+    def evaluate(self, data, options, infos):
         return {"stats": None, "matches": None}
 
     def get_PR_scenarios(self, options):
@@ -39,11 +43,11 @@ class Evaluator(ABC):
         scenarios = common_utils.expand_options_dict(options)
         return scenarios
 
-    def get_PR_curve(self, predictions, tags, options):
+    def get_PR_curve(self, data, options, infos):
         scenarios = self.get_PR_scenarios(options)
         tmp = []
         for scenario in scenarios:
-            tmp.append(self.evaluate_scenario(predictions, tags, scenario))
+            tmp.append(self.evaluate_scenario(data, scenario, infos))
 
         res = common_utils.listdict2dictlist(tmp)
         res["matches"] = pd.concat(res["matches"])
@@ -63,5 +67,5 @@ class Evaluator(ABC):
                 res[to_plot] = tmp
         return res
 
-    def get_events(self, predictions, options, *args, **kwargs):
+    def filter_predictions(self, data, options):
         return []

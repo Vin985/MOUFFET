@@ -11,6 +11,7 @@ from ..utils import common_utils, file_utils
 class ModelHandler(ABC):
 
     DATA_HANDLER_CLASS = DataHandler
+    NETWORK_OPTION_FILENAME = "network_opts.yaml"
 
     def __init__(
         self,
@@ -93,7 +94,7 @@ class ModelHandler(ABC):
             Path(model_opts.model_dir)
             / model_opts.model_id
             / str(version)
-            / "network_opts.yaml",
+            / cls.NETWORK_OPTION_FILENAME,
             ignore_parent_path,
         )
         old_opts["data_config"] = model_opts.get("data_config", "")
