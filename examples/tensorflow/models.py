@@ -35,7 +35,7 @@ class SimpleModel(TFSequentialModel):
         )
 
     def create_model(self):
-        self.model = tf.keras.Sequential(
+        model = tf.keras.Sequential(
             [
                 tf.keras.layers.Conv2D(16, 3, padding="same", activation="relu"),
                 tf.keras.layers.MaxPooling2D(),
@@ -48,11 +48,12 @@ class SimpleModel(TFSequentialModel):
                 tf.keras.layers.Dense(5),
             ]
         )
-        self.model.compile(
+        model.compile(
             optimizer="adam",
             loss=tf.losses.SparseCategoricalCrossentropy(from_logits=True),
             metrics=["accuracy"],
         )
+        return model
 
     def train(self, training_data, validation_data):
         self.create_model()
@@ -109,7 +110,8 @@ class SimpleModel(TFSequentialModel):
         print("Loading pre-trained weights")
         self.model.load_weights(  # pylint: disable=no-member
             self.opts.get_weights_path()
-        )
+        ).expect_partial()
 
     def predict(self, x):
-        return tf.nn.softmax(self.model(x, training=False)).numpy()
+        return tf.nn.softmax(self.model.predict(x)).numpy()
+        # return tf.nn.softmax(self.model(x, training=False)).numpy()

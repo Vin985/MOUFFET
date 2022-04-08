@@ -7,7 +7,7 @@ class: ".models.SimpleModel"
 
 databases: ["tf_flowers"]
 
-n_epochs: 1
+n_epochs: 3
 shuffle_data: True
 batch_size: 32
 augment_data: True

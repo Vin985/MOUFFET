@@ -15,7 +15,7 @@ class TFExampleDataHandler(DataHandler):
     def __init__(self, opts):
         super().__init__(opts)
 
-    def check_datasets(self, databases=None, db_types=None):
+    def check_dataset(self, database, db_types=None):
         return True
 
     def get_split_strings(self, database):
