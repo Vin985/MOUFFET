@@ -25,6 +25,7 @@ class DataHandler(ABC):
         :header: "Option name", "Description", "Default", "Type"
 
         "generate_file_lists", "Should file lists be regenerated", False, "bool"
+        "data_by_type", "Is the database split by type", False, "bool"
 
     """
 
@@ -205,7 +206,13 @@ class DataHandler(ABC):
 
         for db_type in database.db_types:
 
-            db_type_dir = file_utils.get_full_path(database[db_type + "_dir"], root_dir)
+            by_type = database.get("data_by_type", False)
+            if by_type:
+                db_type_dir = file_utils.get_full_path(
+                    database[db_type + "_dir"], root_dir
+                )
+            else:
+                db_type_dir = root_dir
             paths[db_type + "_dir"] = db_type_dir
             paths["data"][db_type] = file_utils.get_full_path(
                 paths["data"]["default"], db_type_dir
@@ -282,7 +289,7 @@ class DataHandler(ABC):
         if not data_path.exists():
             raise ValueError(
                 (
-                    "Data path {} does not exist. Please provide a valid data folder to"
+                    "Data path {} does not exist. Please provide a valid data folder "
                     + "to split into test, training and"
                     + "validation subsets"
                 ).format(data_path)
