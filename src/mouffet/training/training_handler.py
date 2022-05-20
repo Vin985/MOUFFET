@@ -103,7 +103,7 @@ class TrainingHandler(ModelHandler):
                 scenario, models_stats, model_opts
             ):
                 common_utils.print_info(
-                    "Training for the model has already been completed and skip_trained is True. Skipping scenario"
+                    "Training for the model has already been completed and 'skip_trained' is True. Skipping scenario"
                 )
                 return
 
