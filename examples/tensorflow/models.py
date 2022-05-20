@@ -56,7 +56,7 @@ class SimpleModel(TFSequentialModel):
         return model
 
     def train(self, training_data, validation_data):
-        self.create_model()
+        self.model = self.create_model()
         history = self.model.fit(
             training_data,
             validation_data=validation_data,

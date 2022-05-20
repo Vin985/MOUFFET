@@ -36,6 +36,8 @@ models:
   #   version: 0
   - name: "simple_no_augment"
     class: ".models.SimpleModel"
+  - name: "simple_augment"
+    class: ".models.SimpleModel"
 
 ###############
 ## Databases ##

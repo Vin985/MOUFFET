@@ -96,3 +96,9 @@ class TFExampleDataHandler(DataHandler):
         if not by_dataset:
             res = self.merge_datasets(res)
         return res
+
+    def prepare_data(self, data, db_type, opts):
+        func = getattr(self, "prepare_" + db_type + "data", None)
+        if func:
+            data = func(data)
+        return data

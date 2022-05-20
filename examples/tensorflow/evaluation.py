@@ -8,7 +8,7 @@ import pandas as pd
 
 class TFBasicEvaluator(Evaluator):
     def evaluate(self, data, options, infos):
-        return {"stats": None, "matches": None}
+        return {"stats": pd.DataFrame([data]), "matches": pd.DataFrame()}
 
 
 EVALUATORS.register_evaluator("tf", TFBasicEvaluator)
@@ -21,6 +21,12 @@ class TFExampleEvaluationHandler(EvaluationHandler):
                 database,
                 "test",
             )
+            model_opts.opts["augment_data"] = False
+            model_opts.opts["shuffle_data"] = False
+            model_opts.opts["inference"] = True
+            model = self.load_model(model_opts)
+            data = model.prepare_data(data)
+            data = model.model.evaluate(data, return_dict=True)
         else:
             data = self.get_predictions(model_opts, database)
         return data
