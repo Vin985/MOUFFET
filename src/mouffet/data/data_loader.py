@@ -147,6 +147,11 @@ class DataLoader:
     def load_dataset_file(self, file_name):
         print("Loading file: ", file_name)
         if file_name.suffix == ".feather":
-            return feather.read_dataframe(str(file_name))
+            df = feather.read_dataframe(str(file_name))
+            if df.empty:
+                common_utils.print_warning(
+                    "Warning, loaded dataset file {} is empty".format(file_name)
+                )
+            return df
         else:
             return pickle.load(open(file_name, "rb"))
