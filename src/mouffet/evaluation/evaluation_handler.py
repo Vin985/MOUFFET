@@ -203,7 +203,10 @@ class EvaluationHandler(ModelHandler):
         return file_names
 
     def expand_scenarios(self, element_type):
-        elements = self.opts[element_type]
+        if not element_type in self.opts:
+            elements = []
+        else:
+            elements = self.opts[element_type]
         default = self.opts.get(element_type + "_options", {})
         scenarios = []
         for element in elements:
@@ -219,9 +222,24 @@ class EvaluationHandler(ModelHandler):
                 scenarios.append(tmp)
         return scenarios
 
+    def get_models_by_id(self):
+        model_ids = self.opts.get("model_ids", [])
+        for model_id in model_ids:
+            if isinstance(model_id, dict):
+                pass
+            if isinstance(model_id, str):
+                pass
+
+        return []
+
+    def get_model_scenarios(self):
+        model_scenarios = self.expand_scenarios("models")
+        # model_scenarios += self.get_models_by_id()
+        return model_scenarios
+
     def load_scenarios(self):
         db_scenarios = self.expand_scenarios("databases")
-        model_scenarios = self.expand_scenarios("models")
+        model_scenarios = self.get_model_scenarios()
         evaluator_scenarios = self.expand_scenarios("evaluators")
         res = product(db_scenarios, model_scenarios, evaluator_scenarios)
         return list(res)
@@ -296,6 +314,7 @@ class EvaluationHandler(ModelHandler):
         )
         end = time.time()
         if eval_result:
+            eval_result["stats"] = eval_result.get("stats", {})
             eval_result["stats"]["PR_curve"] = scenario_opts["evaluator_opts"].get(
                 "do_PR_curve", False
             )
