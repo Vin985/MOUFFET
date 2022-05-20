@@ -127,26 +127,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-examples/tensorflow/results/models/models_stats.csv
-examples/tensorflow/results/models/simple_no_augment/1/databases.yaml
-examples/tensorflow/results/models/simple_no_augment/10/databases.yaml
-examples/tensorflow/results/models/simple_no_augment/11/databases.yaml
-examples/tensorflow/results/models/simple_no_augment/2/databases.yaml
-examples/tensorflow/results/models/simple_no_augment/3/databases.yaml
-examples/tensorflow/results/models/simple_no_augment/4/databases.yaml
-examples/tensorflow/results/models/simple_no_augment/5/databases.yaml
-examples/tensorflow/results/models/simple_no_augment/6/databases.yaml
-examples/tensorflow/results/models/simple_no_augment/7/databases.yaml
-examples/tensorflow/results/models/simple_no_augment/8/databases.yaml
-examples/tensorflow/results/models/simple_no_augment/9/databases.yaml
-examples/tensorflow/results/models/simple_augment/1/checkpoint
-examples/tensorflow/results/models/simple_augment/1/databases.yaml
-examples/tensorflow/results/models/simple_augment/1/network_opts.yaml
-examples/tensorflow/results/models/simple_augment/1/simple_augment.data-00000-of-00001
-examples/tensorflow/results/models/simple_augment/1/simple_augment.index
-examples/tensorflow/results/models/simple_no_augment/1/checkpoint
-examples/tensorflow/results/models/simple_no_augment/1/network_opts.yaml
-examples/tensorflow/results/models/simple_no_augment/1/simple_no_augment.data-00000-of-00001
-examples/tensorflow/results/models/simple_no_augment/1/simple_no_augment.index
-examples/tensorflow/results/predictions/predictions_stats.csv
-examples/tensorflow/results/predictions/tf_flowers_simple_no_augment_v1.feather
+examples/tensorflow/results
