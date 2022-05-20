@@ -123,7 +123,11 @@ class ModelOptions(Options):
     @property
     def model_id(self):
         if not self._model_id:
-            self._model_id = self.name + self.resolve_id(self.id)
+            conf_id = self.opts.get("model_id", "")
+            if conf_id:
+                self._model_id = conf_id
+            else:
+                self._model_id = self.name + self.resolve_id(self.id)
             # self.opts["model_id"] = self._model_id
         return self._model_id
 
