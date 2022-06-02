@@ -53,7 +53,26 @@ class EvaluationHandler(ModelHandler):
 
     @abstractmethod
     def classify_database(self, model, database, db_type="test"):
-        pass
+        """
+        This function calls a model to classify the database. The data to be classified
+        is usually loaded there, since predictions can be saved to avoid the reclassification.
+        This avoids loading the data for nothing.
+        This function also logs general information about the classification that is stored in the
+        infos dict
+
+        Args:
+            model (_type_): _description_
+            database (_type_): _description_
+            db_type (str, optional): _description_. Defaults to "test".
+
+        Returns:
+            tuple : a tuple containing an instance of pandas Dataframe with the predictions given by
+            the model and a dict with general informations about the classification process (e.g.
+            number of items process, time spent during the classification, etc.)
+        """
+        preds = pd.DataFrame()
+        infos = {}
+        return (preds, infos)
 
     def get_predictions_dir(self, model_opts, database):
         preds_dir = self.get_option("predictions_dir", model_opts)
