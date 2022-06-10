@@ -252,7 +252,7 @@ class TF2Model(DLModel):
                     stop = True
                     training_stats["stopped"] = epoch
                     common_utils.print_info(
-                        "Ealy stopping: stopping at epoch {}".format(epoch)
+                        "Early stopping: stopping at epoch {}".format(epoch)
                     )
                     break
 
