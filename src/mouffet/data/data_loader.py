@@ -21,7 +21,7 @@ class DataLoader:
     CALLBACKS = {}
 
     def __init__(self, structure):
-        self.data = structure.get_copy()
+        self.data = structure
 
     def dataset_options(self, *args, **kwargs):
         common_utils.print_warning(

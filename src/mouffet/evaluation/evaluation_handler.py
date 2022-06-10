@@ -351,14 +351,14 @@ class EvaluationHandler(ModelHandler):
         return eval_result
 
     def get_evaluation_data(self, evaluator, database, model_opts, evaluator_opts):
-        self.data_handler.check_dataset(database, ["test"])
+        database.check_dataset(["test"])
         preds = self.get_predictions(model_opts, database)
         if evaluator_opts.get("filter_only", False):
             tags = None
         else:
             tags = self.data_handler.load_dataset(
-                database,
                 "test",
+                database,
                 load_opts={"file_types": evaluator.REQUIRES},
             )
         return preds, tags

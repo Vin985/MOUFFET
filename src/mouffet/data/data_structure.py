@@ -31,7 +31,7 @@ class DataStructure:
     def keys(self):
         return self.structure.keys()
 
-    def get_copy(self):
+    def get_structure_copy(self):
         return {
             key: deepcopy(self.structure[key].get("data_type", []))
             for key in self.structure.keys()

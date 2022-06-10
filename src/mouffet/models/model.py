@@ -89,29 +89,29 @@ class Model(ABC):
         """
         return None
 
-    @abstractmethod
-    def get_ground_truth(self, data):
-        """Get ground truth data from the dataset
+    # @abstractmethod
+    # def get_ground_truth(self, data):
+    #     """Get ground truth data from the dataset
 
-        Args:
-            data (Object): A dataset defined by the data structure of the data handler
+    #     Args:
+    #         data (Object): A dataset defined by the data structure of the data handler
 
-        Returns:
-            Object: The ground truth data
-        """
-        return data
+    #     Returns:
+    #         Object: The ground truth data
+    #     """
+    #     return data
 
-    @abstractmethod
-    def get_raw_data(self, data):
-        """Get raw data from the dataset
+    # @abstractmethod
+    # def get_raw_data(self, data):
+    #     """Get raw data from the dataset
 
-        Args:
-            data (Object): A dataset defined by the data structure of the data handler
+    #     Args:
+    #         data (Object): A dataset defined by the data structure of the data handler
 
-        Returns:
-            Object: The raw truth data
-        """
-        return data
+    #     Returns:
+    #         Object: The raw truth data
+    #     """
+    #     return data
 
     @abstractmethod
     def save_model(self, path=None):

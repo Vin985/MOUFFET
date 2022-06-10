@@ -5,9 +5,7 @@ from datetime import datetime
 
 import pandas as pd
 
-from mouffet.utils.common import deep_dict_update
-
-from ..data import DataHandler
+from ..data import DB_TYPE_TRAINING, DB_TYPE_VALIDATION
 from ..options import ModelOptions
 from ..utils import ModelHandler, common_utils, file_utils
 
@@ -17,8 +15,8 @@ class TrainingHandler(ModelHandler):
     MODELS_STATS_FILE_NAME = "models_stats.csv"
 
     DB_TYPES = [
-        DataHandler.DB_TYPE_TRAINING,
-        DataHandler.DB_TYPE_VALIDATION,
+        DB_TYPE_TRAINING,
+        DB_TYPE_VALIDATION,
     ]
 
     def check_repeat(self, scenarios):
@@ -123,8 +121,8 @@ class TrainingHandler(ModelHandler):
 
             # * Prepare data for training (e.g. preprocessing)
             data = [
-                model.prepare_data(
-                    self.data_handler.load_datasets(db_type, databases=databases)
+                self.data_handler.load_datasets(
+                    db_type, databases=databases, prepare=True, prepare_opts=model_opts
                 )
                 for db_type in self.DB_TYPES
             ]

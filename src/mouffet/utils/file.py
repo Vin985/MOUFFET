@@ -3,6 +3,7 @@ from pathlib import Path
 import yaml
 
 from . import common_utils
+import csv
 
 
 def ensure_path_exists(path, is_file=False):
@@ -67,3 +68,26 @@ def get_full_path(path, root):
         return path
     else:
         return root / path
+
+
+def load_file_lists(paths, db_types=None):
+    res = {}
+    for db_type, path in paths["file_list"].items():
+        if db_types and db_type in db_types:
+            file_list = []
+            with open(path, mode="r") as f:
+                reader = csv.reader(f)
+                for name in reader:
+                    file_list.append(Path(name[0]))
+            res[db_type] = file_list
+            print("Loaded file: " + str(path))
+    return res
+
+
+def save_file_list(db_type, file_list, paths):
+    file_list_path = paths["dest"][db_type] / (db_type + "_file_list.csv")
+    with open(ensure_path_exists(file_list_path, is_file=True), mode="w") as f:
+        writer = csv.writer(f)
+        for name in file_list:
+            writer.writerow([name])
+        print("Saved file list:", str(file_list_path))
