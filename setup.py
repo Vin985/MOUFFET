@@ -8,15 +8,17 @@ def read(fname):
 
 
 setup(
-    author="Vin985",
+    name="mouffet",
+    author="Sylvain Christin",
+    author_email="esc2203@umoncton.ca",
     description=(
-        "A library offering a unified framework for training and evaluation machine"
+        "A package offering a unified framework for training and evaluation machine"
         + " learning models"
     ),
     keywords="machine learning, unified framework, training, evaluation",
     # long_description=read('README.md'),
-    name="mouffet",
-    version="0.14",
+    version="1.0.0",
     packages=find_packages(),
     package_data={"": ["*.svg", "*.yaml", "*.zip", "*.ico", "*.bat"]},
+    install_requires=["pandas", "feather-format", "pyyaml"],
 )
