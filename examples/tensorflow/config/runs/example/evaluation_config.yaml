@@ -1,36 +1,23 @@
-
-data_config: "examples/tensorflow/config/data_config.yaml"
-save_results: True
-
-###########
 ## Paths ##
-###########
 predictions_dir: "examples/tensorflow/results/predictions"
 evaluation_dir: "examples/tensorflow/results/evaluation"
+data_config: "examples/tensorflow/config/data_config.yaml"
 
-###############
-## Detectors ##
-###############
+save_results: True
 
+## Databases ##
+databases:
+  - name: tf_flowers
 
+## Evaluators ##
 evaluators: 
   - type: "tf"
     use_raw_data: True
   - type: "custom"
 
-############
 ## Models ##
-############
 models_options:
   model_dir: "examples/tensorflow/results/models"
   shuffle_data: False
   augment_data: False
-  reclassify: True
 
-
-###############
-## Databases ##
-###############
-
-databases:
-  - name: tf_flowers

@@ -1,15 +1,12 @@
+## Paths ##
 data_config: "examples/tensorflow/config/data_config.yaml"
-
 model_dir: 'examples/tensorflow/results/models'
 
-logs:
-  log_dir: "logs/gradient_tape/"
-  use_version: True
-
-class: ".models.SimpleTFModel"
-
+## Databases ##
 databases: ["tf_flowers"]
 
+## Model ##
+class: ".models.SimpleTFModel"
 n_epochs: 20
 shuffle_data: True
 batch_size: 32
@@ -17,8 +14,12 @@ augment_data: True
 early_stopping:
   patience: 3
 
+## Scenarios ##
 scenarios:
   - name: "simple_no_augment"
     augment_data: False
   - name: "simple_augment"
+    suffix: "_rot-{rotation}_flip-{flip}"
+    rotation: [0.2, 0.3]
+    flip: ["horizontal", "horizontal_and_vertical"]
     augment_data: True

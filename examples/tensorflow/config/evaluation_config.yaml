@@ -1,48 +1,33 @@
-
-data_config: "examples/tensorflow/config/data_config.yaml"
-save_results: True
-
-###########
 ## Paths ##
-###########
 predictions_dir: "examples/tensorflow/results/predictions"
 evaluation_dir: "examples/tensorflow/results/evaluation"
+data_config: "examples/tensorflow/config/data_config.yaml"
 
-###############
-## Detectors ##
-###############
+save_results: True
 
+## Databases ##
+databases:
+  - name: tf_flowers
 
+## Evaluators ##
 evaluators: 
   - type: "tf"
     use_raw_data: True
   - type: "custom"
 
-############
 ## Models ##
-############
 models_options:
   model_dir: "examples/tensorflow/results/models"
   shuffle_data: False
   augment_data: False
-  reclassify: True
 
 models:
-  # - name: "CityNetTF2_Dropout"
-  #   package: "dlbd.models.CityNetTF2Dropout"
-  #   class: "dlbd.models.CityNetTF2Dropout.CityNetTF2Dropout"
-  # - name: "CityNetOriginal"
-  #   package: "dlbd.models.CityNetOriginal"
-  #   class: "dlbd.models.CityNetOriginal.CityNetOriginal"
-  #   version: 0
   - name: "simple_no_augment"
     class: ".models.SimpleTFModel"
   - name: "simple_augment"
     class: ".models.SimpleTFModel"
+    suffix: "_rot-{rotation}_flip-{flip}"
+    scenarios: 
+      rotation: [0.2, 0.3]
+      flip: ["horizontal", "horizontal_and_vertical"]
 
-###############
-## Databases ##
-###############
-
-databases:
-  - name: tf_flowers
