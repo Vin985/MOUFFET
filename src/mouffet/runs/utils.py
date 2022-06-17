@@ -48,6 +48,8 @@ def launch_run(run, args, handler_classes):
     for training_scenario in trainer.scenarios:
         # * Make sure all models and logs are saved at the same place
         training_scenario["model_dir"] = str(model_dir)
+        if not "logs" in training_scenario:
+            training_scenario["logs"] = {}
         training_scenario["logs"]["log_dir"] = str(log_dir)
 
         # * Data config could be overloaded by model so do not force it
