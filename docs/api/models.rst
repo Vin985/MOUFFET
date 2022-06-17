@@ -8,4 +8,3 @@ Default implementations for some models
     
     models/model
     models/dlmodel
-    models/TF2Model
