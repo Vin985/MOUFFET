@@ -10,8 +10,8 @@ from ..utils import common_utils
 class ModelOptions(Options):
 
     DEFAULT_VALUES = {
-        "id": "",
-        "id_prefixes": {"default": ""},
+        "suffix": "",
+        "suffix_prepend": {"default": ""},
         "intermediate_save_dir": "intermediate",
     }
 
@@ -127,7 +127,7 @@ class ModelOptions(Options):
             if conf_id:
                 self._model_id = conf_id
             else:
-                self._model_id = self.name + self.resolve_id(self.id)
+                self._model_id = self.name + self.add_suffix()
             # self.opts["model_id"] = self._model_id
         return self._model_id
 
@@ -135,9 +135,10 @@ class ModelOptions(Options):
     def model_id(self, value):
         self._model_id = value
 
-    def resolve_id(self, model_id):
-        prefixes = self.id_prefixes
-        to_replace = re.findall("\\{(.+?)\\}", model_id)
+    def add_suffix(self):
+        pattern = self.suffix
+        prefixes = self.suffix_prepend
+        to_replace = re.findall("\\{(.+?)\\}", pattern)
         res = {}
         for key in to_replace:
             mid = ""
@@ -153,7 +154,7 @@ class ModelOptions(Options):
             mid += common_utils.list2str(value)
             res[key] = mid
 
-        mid = model_id.format(**res)
+        mid = pattern.format(**res)
         return mid
 
     # @property
