@@ -138,16 +138,6 @@ class EvaluationHandler(ModelHandler):
         preds = self.on_get_predictions_end(preds)
         return preds
 
-    # def get_evaluator(self, evaluator_opts):
-    #     evaluator = self.EVALUATORS.get(evaluator_opts["type"], None)
-    #     if not evaluator:
-    #         print(
-    #             "Evaluator {} not found. Please make sure this evaluator exists."
-    #             + "Skipping."
-    #         )
-    #         return None
-    #     return evaluator
-
     def consolidate_results(self, results):
         res = common_utils.listdict2dictlist(results)
         if res:
@@ -253,7 +243,6 @@ class EvaluationHandler(ModelHandler):
 
     def get_model_scenarios(self):
         model_scenarios = self.expand_scenarios("models")
-        # model_scenarios += self.get_models_by_id()
         return model_scenarios
 
     def load_scenarios(self):
@@ -283,9 +272,10 @@ class EvaluationHandler(ModelHandler):
         include = evaluator_opts.get("databases", [])
         if include and not db in include:
             common_utils.print_info(
-                "Database {} is not in the accepted databases list of evaluator {}. Skipping.".format(
-                    db, evaluator_opts["type"]
-                )
+                (
+                    "Database {} is not in the accepted databases list of evaluator {}. "
+                    + "Skipping."
+                ).format(db, evaluator_opts["type"])
             )
             return True
         exclude = evaluator_opts.get("exclude_databases", [])
@@ -302,21 +292,6 @@ class EvaluationHandler(ModelHandler):
         self, evaluator, evaluation_data, scenario_infos, scenario_opts
     ):
         eval_result = {}
-        # if self.opts.get("events_only", False):
-        #     print(
-        #         "\033[92m"
-        #         + "Getting events for model {0} on dataset {1} with evaluator {2}".format(
-        #             scenario_infos["model"],
-        #             scenario_infos["database"],
-        #             scenario_infos["evaluator"],
-        #         )
-        #         + "\033[0m"
-        #     )
-        #     eval_result["events"] = evaluator.get_events(
-        #         evaluation_data, scenario_opts["evaluator_opts"]
-        #     )
-        #     eval_result["conf"] = dict(scenario_infos, **scenario_opts)
-        # else:
         print(
             "\033[92m"
             + "Processing model {0} on dataset {1} with evaluator {2}".format(

@@ -33,12 +33,8 @@ class TrainingHandler(ModelHandler):
 
         return res
 
-    # def check_cross_validation(self, scenarios):
-    #     return scenarios
-
     def post_process_scenarios(self, scenarios):
         scenarios = self.check_repeat(scenarios)
-        # scenarios = self.check_cross_validation(scenarios)
         return scenarios
 
     def expand_training_scenarios(self):

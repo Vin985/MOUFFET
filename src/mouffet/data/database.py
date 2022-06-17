@@ -1,20 +1,7 @@
-from os import pathsep
 from ..options import DatabaseOptions
-import csv
-import pickle
-from pathlib import Path
-from unittest.mock import NonCallableMagicMock
-
-import feather
-
-from .data_loader import DataLoader
-
-from ..options import DatabaseOptions
-
-from ..utils import common_utils, file_utils
-from .split import random_split
-from .data_structure import DataStructure
+from ..utils import file_utils
 from .dataset import Dataset
+from .split import random_split
 
 
 class Database(DatabaseOptions):
@@ -26,7 +13,6 @@ class Database(DatabaseOptions):
     def __init__(self, opts, updated_opts=None):
         super().__init__(opts, updated_opts)
         self._paths = {}
-        self.datasets = {}
 
     @property
     def paths(self):
@@ -68,9 +54,6 @@ class Database(DatabaseOptions):
             paths["file_list"][db_type] = self.get(
                 db_type + "_file_list_path", dest_dir / (db_type + "_file_list.csv")
             )
-            # paths["save_dests"][db_type] = self.get_save_dest_paths(
-            #     dest_dir, db_type, database, subfolders
-            # )
         return paths
 
     def check_file_lists(self, db_types=None):
@@ -165,7 +148,6 @@ class Database(DatabaseOptions):
         return res
 
     def check_dataset(self, db_types=None):
-        # db_types = db_types or database.db_types
         file_lists = self.check_file_lists(db_types)
         for db_type, file_list in file_lists.items():
             if db_types and db_type in db_types:
@@ -178,10 +160,6 @@ class Database(DatabaseOptions):
                 )
                 if not dataset.exists() or overwrite:
                     dataset.generate(file_list, overwrite)
-                # if not self.check_dataset_exists(paths, db_type) or overwrite:
-                #     self.generate_dataset(
-                #         database, paths, file_list, db_type, overwrite
-                #     )
 
     def load_dataset(
         self,
@@ -190,7 +168,6 @@ class Database(DatabaseOptions):
     ):
         dataset = self.DATASET(
             database=self,
-            # paths=self.get_database_paths(database),
             db_type=db_type,
         )
         dataset.load(load_opts)
