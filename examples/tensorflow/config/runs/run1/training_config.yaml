@@ -2,23 +2,23 @@ data_config: "examples/tensorflow/config/data_config.yaml"
 
 model_dir: 'examples/tensorflow/results/models'
 
-
-# logs:
-#   log_dir: "logs/gradient_tape/"
-#   use_version: True
+logs:
+  log_dir: "logs/gradient_tape/"
+  use_version: True
 
 class: ".models.SimpleTFModel"
 
 databases: ["tf_flowers"]
 
-n_epochs: 3
+n_epochs: 20
 shuffle_data: True
 batch_size: 32
 augment_data: True
+early_stopping:
+  patience: 3
 
 scenarios:
   - name: "simple_no_augment"
     augment_data: False
   - name: "simple_augment"
     augment_data: True
-

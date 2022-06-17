@@ -1,38 +1,11 @@
 from mouffet.models import DLModel
 
 import tensorflow as tf
-from tensorflow.keras import layers
 
 
-class TFSequentialModel(DLModel):
-    def get_ground_truth(self, data):
-        return data["labels"]
-
-    def get_raw_data(self, data):
-        return data["images"]
-
-    def classify(self, data, sampler=None):
-        return self.model.predict(data)
-
-
-class SimpleModel(TFSequentialModel):
+class SimpleTFModel(DLModel):
     def __init__(self, opts=None):
         super().__init__(opts)
-
-        img_size = self.opts.get("img_size", 128)
-        self.resize_and_rescale_layers = tf.keras.Sequential(
-            [
-                tf.keras.layers.Resizing(img_size, img_size),
-                tf.keras.layers.Rescaling(1.0 / 255),
-            ]
-        )
-
-        self.data_augmentation_layers = tf.keras.Sequential(
-            [
-                tf.keras.layers.RandomFlip("horizontal_and_vertical"),
-                tf.keras.layers.RandomRotation(0.2),
-            ]
-        )
 
     def create_model(self):
         model = tf.keras.Sequential(
@@ -56,50 +29,34 @@ class SimpleModel(TFSequentialModel):
         return model
 
     def train(self, training_data, validation_data):
+        early_stopping = self.opts.get("early_stopping", {})
+        callbacks = []
+        if early_stopping:
+            callbacks.append(
+                tf.keras.callbacks.EarlyStopping(
+                    # * Stop training when `val_loss` is no longer improving
+                    monitor=early_stopping.get("monitor", "val_loss"),
+                    # * "no longer improving" being defined as "no better than 1e-2 less"
+                    min_delta=early_stopping.get("min_delta", 1e-2),
+                    # * "no longer improving" being further defined as "for at least 2 epochs"
+                    patience=early_stopping.get("patience", 2),
+                    verbose=early_stopping.get("verbose", 1),
+                    restore_best_weights=early_stopping.get(
+                        "restore_best_weights", True
+                    ),
+                )
+            )
         self.model = self.create_model()
         history = self.model.fit(
-            training_data,
-            validation_data=validation_data,
+            training_data["data"],
+            validation_data=validation_data["data"],
             epochs=self.opts.get("n_epochs", 3),
+            callbacks=callbacks,
         )
-        # Return information saved in callbacks
+        # * Return information saved in callbacks
         res = history.history
         res.update(history.params)
         return res
-
-    def prepare_data(self, data):
-        """Prepare data before training the model. This function is automatically called
-        after loading the datasets
-
-        Args:
-            data (_type_): The data to prepare. Here it is a Tensorflow dataset
-
-        Returns:
-            the prepared data
-        """
-
-        # Resize and rescale all datasets.
-        ds = data["data"]
-        ds = ds.map(
-            lambda x, y: (self.resize_and_rescale_layers(x), y),
-            num_parallel_calls=tf.data.AUTOTUNE,
-        )
-
-        if self.opts.get("shuffle_data", True):
-            ds = ds.shuffle(1000)
-
-        # Batch all datasets.
-        ds = ds.batch(self.opts.get("batch_size", 32))
-
-        # Use data augmentation only on the training set.
-        if self.opts.get("augment_data", True):
-            ds = ds.map(
-                lambda x, y: (self.data_augmentation_layers(x, training=True), y),
-                num_parallel_calls=tf.data.AUTOTUNE,
-            )
-
-        # Use buffered prefetching on all datasets.
-        return ds.prefetch(buffer_size=tf.data.AUTOTUNE)
 
     def save_weights(self, path=None):
         if not path:
@@ -114,4 +71,12 @@ class SimpleModel(TFSequentialModel):
 
     def predict(self, x):
         return tf.nn.softmax(self.model.predict(x)).numpy()
-        # return tf.nn.softmax(self.model(x, training=False)).numpy()
+
+    def get_ground_truth(self, data):
+        return data["labels"]
+
+    def get_raw_data(self, data):
+        return data["images"]
+
+    def classify(self, data, sampler=None):
+        return self.model.predict(data)

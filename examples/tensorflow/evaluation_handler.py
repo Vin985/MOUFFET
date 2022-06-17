@@ -10,10 +10,7 @@ class TFExampleEvaluationHandler(EvaluationHandler):
         the required data should be returned there
         """
         # * Get raw data
-        raw_data = self.data_handler.load_dataset(
-            database,
-            "test",
-        )
+        raw_data = self.data_handler.load_dataset("test", database, {})
         if evaluator_opts.get("use_raw_data", False):
             # * We evaluate the model directly from built-in functions
             # * Note: Evaluation is usually done in evaluators, however in mouffet evaluator
@@ -22,8 +19,8 @@ class TFExampleEvaluationHandler(EvaluationHandler):
             model_opts.opts["shuffle_data"] = False
             model_opts.opts["inference"] = True
             model = self.load_model(model_opts)
-            data = model.prepare_data(raw_data)
-            data = model.model.evaluate(data, return_dict=True)
+            data = self.data_handler.prepare_dataset(raw_data, model_opts)
+            data = model.model.evaluate(data["data"], return_dict=True)
         else:
             # * We do everything manully
             # * Get the predictions (will call classify_database)
@@ -44,12 +41,16 @@ class TFExampleEvaluationHandler(EvaluationHandler):
         """
         infos = {}
         ds = self.data_handler.load_dataset(
-            database,
             db_type,
+            database,
+            {},
+            prepare_opts=model.opts,
+            prepare=True,
         )
-        infos["n_images"] = len(ds["data"])
+        data = ds.data["data"]
+        infos["n_images"] = len(data)
         start = time.time()
-        data = model.prepare_data(ds)
+        # data = model.prepare_data(ds)
         preds = pd.DataFrame(model.predict(data))
         end = time.time()
         infos["global_duration"] = round(end - start, 2)

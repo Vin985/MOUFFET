@@ -27,18 +27,6 @@ models_options:
   augment_data: False
   reclassify: True
 
-models:
-  # - name: "CityNetTF2_Dropout"
-  #   package: "dlbd.models.CityNetTF2Dropout"
-  #   class: "dlbd.models.CityNetTF2Dropout.CityNetTF2Dropout"
-  # - name: "CityNetOriginal"
-  #   package: "dlbd.models.CityNetOriginal"
-  #   class: "dlbd.models.CityNetOriginal.CityNetOriginal"
-  #   version: 0
-  - name: "simple_no_augment"
-    class: ".models.SimpleTFModel"
-  - name: "simple_augment"
-    class: ".models.SimpleTFModel"
 
 ###############
 ## Databases ##
