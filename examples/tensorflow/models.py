@@ -72,11 +72,5 @@ class SimpleTFModel(DLModel):
     def predict(self, x):
         return tf.nn.softmax(self.model.predict(x)).numpy()
 
-    def get_ground_truth(self, data):
-        return data["labels"]
-
-    def get_raw_data(self, data):
-        return data["images"]
-
     def classify(self, data, sampler=None):
         return self.model.predict(data)

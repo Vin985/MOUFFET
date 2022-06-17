@@ -47,11 +47,11 @@ class TFDataset(Dataset):
         dataset = getattr(self, "load_" + db_name)(load_opts)
         return dataset
 
-    def get_ground_truth(self):
-        return self.data["data"]["labels"]
+    # def get_ground_truth(self):
+    #     return self.data["data"]["labels"]
 
-    def get_raw_data(self):
-        return self.data["data"]["images"]
+    # def get_raw_data(self):
+    #     return self.data["data"]["images"]
 
 
 class TFDatabase(Database):
@@ -112,8 +112,8 @@ class TFExampleDataHandler(DataHandler):
 
         data_augmentation_layers = tf.keras.Sequential(
             [
-                tf.keras.layers.RandomFlip("horizontal_and_vertical"),
-                tf.keras.layers.RandomRotation(0.2),
+                tf.keras.layers.RandomFlip(opts.get("flip", "horizontal_and_vertical")),
+                tf.keras.layers.RandomRotation(opts.get("rotation", 0.2)),
             ]
         )
 
