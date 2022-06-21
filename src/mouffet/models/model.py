@@ -75,45 +75,6 @@ class Model(ABC):
         raise NotImplementedError("predict function not implemented for this class")
 
     @abstractmethod
-    def classify(self, data, sampler):
-        """Perform classification on several data items using the sampler. This function should call
-        predict.
-
-        Args:
-            data (Object): The data to classify
-            sampler (Object): An optional object that performs subsampling of the data and returns
-            objects that can be passed to the predict() method.
-
-        Returns:
-            Object: The predicted data
-        """
-        return None
-
-    # @abstractmethod
-    # def get_ground_truth(self, data):
-    #     """Get ground truth data from the dataset
-
-    #     Args:
-    #         data (Object): A dataset defined by the data structure of the data handler
-
-    #     Returns:
-    #         Object: The ground truth data
-    #     """
-    #     return data
-
-    # @abstractmethod
-    # def get_raw_data(self, data):
-    #     """Get raw data from the dataset
-
-    #     Args:
-    #         data (Object): A dataset defined by the data structure of the data handler
-
-    #     Returns:
-    #         Object: The raw truth data
-    #     """
-    #     return data
-
-    @abstractmethod
     def save_model(self, path=None):
         """Save the model to disk
 
