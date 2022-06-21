@@ -29,7 +29,7 @@ class TFExampleEvaluationHandler(EvaluationHandler):
             data = model.model.evaluate(data["data"], return_dict=True)
         else:
             # * We do everything manully
-            # * Get the predictions (will call classify_database)
+            # * Get the predictions (will call predict_database)
             preds = self.get_predictions(model_opts, database)
             # * Get the labels
             labels = [y.numpy() for _, y in raw_data["data"]]
@@ -39,7 +39,7 @@ class TFExampleEvaluationHandler(EvaluationHandler):
 
         return data
 
-    def classify_database(self, model, database, db_type="test"):
+    def predict_database(self, model, database, db_type="test"):
         """This function calls a model to classify the database. The data to be classified
         is usually loaded there. This is because predictions can be saved to avoid the reclassification.
         This avoids loading the data for nothing.
