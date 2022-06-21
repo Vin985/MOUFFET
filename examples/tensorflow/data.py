@@ -29,7 +29,7 @@ class TFDataset(Dataset):
             self.database.add_option("split_strings", splits_strings)
         return splits_strings
 
-    def load_tf_flowers(self, load_opts=None):
+    def load(self, load_opts=None):
         split_strings = self.get_split_strings()
         split_str = "train[" + split_strings[self.db_type] + "]"
         ds, metadata = tfds.load(
@@ -41,17 +41,7 @@ class TFDataset(Dataset):
         self.data = self.get_structure_copy()
         self.data["data"] = ds[0]
         self.data["metadata"] = metadata
-
-    def load(self, load_opts=None):
-        db_name = self.database.name
-        dataset = getattr(self, "load_" + db_name)(load_opts)
-        return dataset
-
-    # def get_ground_truth(self):
-    #     return self.data["data"]["labels"]
-
-    # def get_raw_data(self):
-    #     return self.data["data"]["images"]
+        return self.data
 
 
 class TFDatabase(Database):
@@ -126,7 +116,7 @@ class TFExampleDataHandler(DataHandler):
             ds = ds.shuffle(1000)
 
         # * Batch all datasets.
-        ds = ds.batch(self.opts.get("batch_size", 32))
+        ds = ds.batch(opts.get("batch_size", 32))
 
         # * Use data augmentation.
         if opts.get("augment_data", True):
