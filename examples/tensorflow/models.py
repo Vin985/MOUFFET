@@ -4,9 +4,6 @@ import tensorflow as tf
 
 
 class SimpleTFModel(DLModel):
-    def __init__(self, opts=None):
-        super().__init__(opts)
-
     def create_model(self):
         model = tf.keras.Sequential(
             [
@@ -71,6 +68,3 @@ class SimpleTFModel(DLModel):
 
     def predict(self, x):
         return tf.nn.softmax(self.model.predict(x)).numpy()
-
-    def classify(self, data, sampler=None):
-        return self.model.predict(data)
