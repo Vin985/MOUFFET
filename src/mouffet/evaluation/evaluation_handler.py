@@ -52,9 +52,9 @@ class EvaluationHandler(ModelHandler):
         plot.set_plotting_method(self.opts)  # pylint: disable=no-member
 
     @abstractmethod
-    def classify_database(self, model, database, db_type="test"):
+    def predict_database(self, model, database, db_type="test"):
         """
-        This function calls a model to classify the database. The data to be classified
+        This function calls a model to get predictions for an entire database. The data to be classified
         is usually loaded there, since predictions can be saved to avoid the reclassification.
         This avoids loading the data for nothing.
         This function also logs general information about the classification that is stored in the
@@ -100,7 +100,7 @@ class EvaluationHandler(ModelHandler):
         preds_dir = self.get_predictions_dir(model_opts, database)
         file_name = self.get_predictions_file_name(model_opts, database)
         pred_file = preds_dir / file_name
-        if not model_opts.get("reclassify", False) and pred_file.exists():
+        if not model_opts.get("repredict", False) and pred_file.exists():
             preds = feather.read_dataframe(pred_file)
         else:
             # * Load predictions stats database
@@ -115,7 +115,7 @@ class EvaluationHandler(ModelHandler):
             model_opts.opts["inference"] = True
             common_utils.print_info("Loading model with options: " + str(model_opts))
             model = self.load_model(model_opts)
-            preds, infos = self.classify_database(model, database, db_type="test")
+            preds, infos = self.predict_database(model, database, db_type="test")
 
             # * save classification stats
             scenario_info["date"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
