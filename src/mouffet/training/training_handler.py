@@ -138,6 +138,7 @@ class TrainingHandler(ModelHandler):
             scenario_info["training_duration"] = round(end - train_start, 2)
             scenario_info["n_epochs"] = scenario["n_epochs"]
             scenario_info["model_id"] = model_opts.model_id
+            scenario_info["version"] = model_opts.save_version
             scenario_info["n_parameters"] = model.n_parameters
             scenario_info["opts"] = str(scenario)
             scenario_info.update(train_stats)
