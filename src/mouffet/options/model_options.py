@@ -157,15 +157,6 @@ class ModelOptions(Options):
         mid = pattern.format(**res)
         return mid
 
-    # @property
-    # def version(self):
-    #     if self._version is None:
-    #         v = self.opts.get("version", None)
-    #         if not v:
-    #             v = self.get_model_version(self.results_dir_root)
-    #         self._version = v
-    #     return self._version
-
     def get_last_version(self):
         version = 0
         path = self.results_dir_root
