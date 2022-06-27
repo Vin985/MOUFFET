@@ -5,15 +5,20 @@ data_config: "examples/tensorflow/config/data_config.yaml"
 
 save_results: True
 
+draw_global_plots: True
+global_plots: ["test"]
+
 ## Databases ##
 databases:
   - name: tf_flowers
 
 ## Evaluators ##
 evaluators: 
-  - type: "tf"
-    use_raw_data: True
+  # - type: "tf"
+  #   use_raw_data: True
   - type: "custom"
+    scenarios:
+      threshold: [-1, 0.3, 0.5, 0.75]
 
 ## Models ##
 models_options:

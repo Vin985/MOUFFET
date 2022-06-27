@@ -4,10 +4,26 @@ import pandas as pd
 from mouffet.evaluation import EVALUATORS, EvaluationHandler
 
 from data import TFExampleDataHandler
-from evaluators import TFBasicEvaluator, TFCustomEvaluator
+from evaluators import TFBasicEvaluator, CustomEvaluator
+from plotnine import (
+    aes,
+    element_text,
+    facet_wrap,
+    geom_bar,
+    geom_point,
+    geom_text,
+    ggplot,
+    ggtitle,
+    theme,
+    theme_classic,
+    xlab,
+    ylab,
+)
+
+import ast
 
 EVALUATORS.register_evaluator("tf", TFBasicEvaluator)
-EVALUATORS.register_evaluator("custom", TFCustomEvaluator)
+EVALUATORS.register_evaluator("custom", CustomEvaluator)
 
 
 class TFExampleEvaluationHandler(EvaluationHandler):
@@ -19,7 +35,7 @@ class TFExampleEvaluationHandler(EvaluationHandler):
         raw_data = self.data_handler.load_dataset("test", database, {})
         if evaluator_opts.get("use_raw_data", False):
             # * We evaluate the model directly from built-in functions
-            # * Note: Evaluation is usually done in evaluators, however in mouffet evaluator
+            # * Note: Evaluation is usually done in evaluators. However, evaluators
             # * do not have access to models and thus this is performed here
             model_opts.opts["augment_data"] = False
             model_opts.opts["shuffle_data"] = False
@@ -66,6 +82,47 @@ class TFExampleEvaluationHandler(EvaluationHandler):
         infos["database"] = database.name
 
         return preds, infos
+
+    def plot_test(self, res):
+        stats = res["stats"]
+        cust_stats = stats.loc[stats.evaluator == "custom"]
+        if not cust_stats.empty:
+            f1_scores = cust_stats
+            f1_scores["f1"] = cust_stats["macro avg"].apply(lambda x: x.get("f1-score"))
+            f1_scores["threshold"] = (
+                cust_stats["evaluator_opts"]
+                .apply(lambda x: ast.literal_eval(x).get("threshold"))
+                .astype("category")
+            )
+
+        plt = (
+            ggplot(
+                data=f1_scores,
+                mapping=aes(
+                    x="accuracy",  # "factor(species, ordered=False)",
+                    y="f1",
+                    color="threshold",
+                ),
+            )
+            + geom_point(
+                aes(shape="model"),
+                stat="identity",
+                show_legend=True,
+            )
+            + xlab("Accuracy")
+            + ylab("F1-Score")
+            + theme_classic()
+            + theme(
+                axis_text_x=element_text(
+                    angle=45,
+                ),
+                plot_title=element_text(
+                    weight="bold", size=14, margin={"t": 10, "b": 10}
+                ),
+                text=element_text(size=12, weight="bold"),
+            )
+        )
+        return [plt]
 
 
 evaluator = TFExampleEvaluationHandler(

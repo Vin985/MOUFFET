@@ -2,6 +2,7 @@ import pandas as pd
 from mouffet.evaluation import Evaluator
 from mouffet import common_utils
 from sklearn.metrics import classification_report
+import numpy as np
 
 
 class TFBasicEvaluator(Evaluator):
@@ -11,13 +12,28 @@ class TFBasicEvaluator(Evaluator):
         return {"stats": pd.DataFrame([data]), "matches": pd.DataFrame()}
 
 
-class TFCustomEvaluator(Evaluator):
+class CustomEvaluator(Evaluator):
+    def get_label_names(self, columns, metadata):
+        res = []
+        for x in columns:
+            if x == -1:
+                res.append("Not sure")
+            else:
+                res.append(metadata.features["label"].int2str(int(x)))
+        return res
+
     def evaluate(self, data, options, infos):
         preds, labels, meta = data
         # * Get class with the best prediction score
-        top_class = preds.to_numpy().argmax(axis=1)
+        thresh = options.get("threshold", -1)
+        npreds = preds.to_numpy()
+        top_class = npreds.argmax(axis=1)
+        if thresh != -1:
+            unsolved = npreds.max(axis=1) <= thresh
+            top_class[unsolved] = -1
+
         # * Get label names
-        label_names = [meta.features["label"].int2str(int(x)) for x in preds.columns]
+        label_names = self.get_label_names(np.unique(top_class), meta)
         # * get classification report from sklearn
         cr = classification_report(
             labels,
