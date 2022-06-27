@@ -26,15 +26,6 @@ class DLModel(Model):
         """
         return 0
 
-    # @abstractmethod
-    # def create_net(self):
-    #     """Creates the network for the deep learning model
-
-    #     Returns:
-    #         Object: The deep learning network
-    #     """
-    #     return 0
-
     @abstractmethod
     def train(self, training_data, validation_data):
         """Function call by the training handler to train the model
