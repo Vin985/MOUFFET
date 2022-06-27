@@ -30,6 +30,7 @@ and model framework agnostic. This means that several models created with differ
    :caption: Getting started:
 
    install
+   tutorial
 
 .. toctree::
    :maxdepth: 2
