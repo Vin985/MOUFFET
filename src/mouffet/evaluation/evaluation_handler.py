@@ -164,8 +164,7 @@ class EvaluationHandler(ModelHandler):
         res.reset_index(inplace=True, drop=True)
         res.to_feather(pr_file)
 
-    def save_results(self, results):
-        res = self.consolidate_results(results)
+    def save_results(self, res):
         file_names = {}
         if res:
             prefix = ""
@@ -192,24 +191,37 @@ class EvaluationHandler(ModelHandler):
             if not pr_df.empty:
                 self.save_pr_curve_data(pr_df)
 
-            plots = res.get("plots", {})
-            if plots:
-                for key, values in plots.items():
-                    # pylint: disable=no-member
-                    plot_file_path = res_dir / (
-                        "_".join(
-                            filter(
-                                None,
-                                [prefix, eval_id, "{}.pdf".format(key)],
+            for plot_type in ["", "global_"]:
+                plots = res.get(plot_type + "plots", {})
+                if plots:
+                    for key, values in plots.items():
+                        if values:
+                            # pylint: disable=no-member
+                            plot_file_path = res_dir / (
+                                "_".join(
+                                    filter(
+                                        None,
+                                        [prefix, eval_id, "{}.pdf".format(key)],
+                                    )
+                                )
                             )
-                        )
-                    )
-                    plot.save_as_pdf(
-                        values,
-                        plot_file_path,
-                    )
-                    file_names["plot_" + key] = plot_file_path
+                            plot.save_as_pdf(
+                                values,
+                                plot_file_path,
+                            )
+                            file_names[plot_type + "plot_" + key] = plot_file_path
         return file_names
+
+    def draw_global_plots(self, results):
+
+        plts = {}
+        plots = self.opts.get("global_plots", [])
+        for to_plot in plots:
+            func_name = "plot_" + to_plot.strip()
+            if hasattr(self, func_name) and callable(getattr(self, func_name)):
+                tmp = getattr(self, func_name)(results)
+                plts[to_plot] = tmp
+        return plts
 
     def expand_scenarios(self, element_type):
         if not element_type in self.opts:
@@ -398,6 +410,9 @@ class EvaluationHandler(ModelHandler):
 
     def evaluate(self):
         res = [self.evaluate_scenario(scenario) for scenario in self.scenarios]
+        results = self.consolidate_results(res)
+        if self.opts.get("draw_global_plots", False):
+            results["global_plots"] = self.draw_global_plots(results)
         if self.opts.get("save_results", True):
-            self.save_results(res)
-        return res
+            self.save_results(results)
+        return results
