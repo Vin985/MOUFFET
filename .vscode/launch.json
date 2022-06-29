@@ -19,6 +19,18 @@
             "program": "/mnt/win/UMoncton/Doctorat/dev/mouffet/src/train.py",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/src" //"/mnt/win/UMoncton/Doctorat/dev/ecosongs/src/"
+        },
+        {
+            "name": "Launch flowers run",
+            "type": "python",
+            "request": "launch",
+            "program": "/mnt/win/UMoncton/Doctorat/dev/mouffet/examples/flowers/run.py",
+            "args": [
+                "flowers"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "cwd": "${workspaceFolder}/examples/flowers"
         }
     ]
 }
