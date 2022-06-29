@@ -3,7 +3,7 @@ from mouffet.models import DLModel
 import tensorflow as tf
 
 
-class SimpleTFModel(DLModel):
+class FlowersClassifier(DLModel):
     def create_model(self):
         model = tf.keras.Sequential(
             [

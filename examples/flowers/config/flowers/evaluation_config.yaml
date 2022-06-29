@@ -1,7 +1,7 @@
 ## Paths ##
-predictions_dir: "examples/tensorflow/results/predictions"
-evaluation_dir: "examples/tensorflow/results/evaluation"
-data_config: "examples/tensorflow/config/data_config.yaml"
+predictions_dir: "results/predictions"
+evaluation_dir: "results/evaluation"
+data_config: "config/flowers/data_config.yaml"
 
 save_results: True
 
@@ -14,23 +14,21 @@ databases:
 
 ## Evaluators ##
 evaluators: 
-  # - type: "tf"
-  #   use_raw_data: True
   - type: "custom"
     scenarios:
       threshold: [-1, 0.3, 0.5, 0.75]
 
 ## Models ##
 models_options:
-  model_dir: "examples/tensorflow/results/models"
+  model_dir: "results/models"
   shuffle_data: False
   augment_data: False
 
 models:
   - name: "simple_no_augment"
-    class: ".models.SimpleTFModel"
+    class: ".models.FlowersClassifier"
   - name: "simple_augment"
-    class: ".models.SimpleTFModel"
+    class: ".models.FlowersClassifier"
     suffix: "_rot-{rotation}_flip-{flip}"
     scenarios: 
       rotation: [0.2, 0.3]

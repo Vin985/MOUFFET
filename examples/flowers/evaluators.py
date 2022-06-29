@@ -5,13 +5,6 @@ from sklearn.metrics import classification_report
 import numpy as np
 
 
-class TFBasicEvaluator(Evaluator):
-    def evaluate(self, data, options, infos):
-        # * Just return the data provided by tensorflow
-        common_utils.print_warning("Accuracy: {}".format(round(data["accuracy"], 3)))
-        return {"stats": pd.DataFrame([data]), "matches": pd.DataFrame()}
-
-
 class CustomEvaluator(Evaluator):
     def get_label_names(self, columns, metadata):
         res = []

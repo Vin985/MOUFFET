@@ -1,12 +1,12 @@
 ## Paths ##
-data_config: "examples/tensorflow/config/data_config.yaml"
-model_dir: 'examples/tensorflow/results/models'
+data_config: "config/flowers/data_config.yaml"
+model_dir: 'results/models'
 
 ## Databases ##
 databases: ["tf_flowers"]
 
 ## Model ##
-class: ".models.SimpleTFModel"
+class: ".models.FlowersClassifier"
 n_epochs: 20
 shuffle_data: True
 batch_size: 32
@@ -14,11 +14,13 @@ augment_data: True
 early_stopping:
   patience: 3
 
+skip_trained: True
+
 ## Scenarios ##
 scenarios:
-  - name: "simple_no_augment"
+  - name: "no_augment"
     augment_data: False
-  - name: "simple_augment"
+  - name: "augment"
     suffix: "_rot-{rotation}_flip-{flip}"
     rotation: [0.2, 0.3]
     flip: ["horizontal", "horizontal_and_vertical"]

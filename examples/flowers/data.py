@@ -4,7 +4,7 @@ from mouffet.data import ALL_DB_TYPES, Database, DataHandler, Dataset
 import tensorflow as tf
 
 
-class TFDataset(Dataset):
+class FlowersDataset(Dataset):
     STRUCTURE = {"data": {"type": "data"}, "metadata": {"type": "metadata"}}
 
     def get_split_strings(self):
@@ -44,8 +44,8 @@ class TFDataset(Dataset):
         return self.data
 
 
-class TFDatabase(Database):
-    DATASET = TFDataset
+class FlowersDatabase(Database):
+    DATASET = FlowersDataset
 
     def check_dataset(self, database, db_types=None):
         return True
@@ -54,8 +54,8 @@ class TFDatabase(Database):
         return {}
 
 
-class TFExampleDataHandler(DataHandler):
-    DATABASE_CLASS = TFDatabase
+class FlowersDataHandler(DataHandler):
+    DATABASE_CLASS = FlowersDatabase
 
     def __init__(self, opts):
         super().__init__(opts)
@@ -91,6 +91,7 @@ class TFExampleDataHandler(DataHandler):
 
         # * Resize and rescale all datasets.
         ds = dataset.data["data"]
+        seed = opts.get("seed", None)
 
         img_size = opts.get("img_size", 128)
         resize_and_rescale_layers = tf.keras.Sequential(
@@ -102,8 +103,10 @@ class TFExampleDataHandler(DataHandler):
 
         data_augmentation_layers = tf.keras.Sequential(
             [
-                tf.keras.layers.RandomFlip(opts.get("flip", "horizontal_and_vertical")),
-                tf.keras.layers.RandomRotation(opts.get("rotation", 0.2)),
+                tf.keras.layers.RandomFlip(
+                    opts.get("flip", "horizontal_and_vertical"), seed=seed
+                ),
+                tf.keras.layers.RandomRotation(opts.get("rotation", 0.2), seed=seed),
             ]
         )
 

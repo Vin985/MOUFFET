@@ -1,7 +1,0 @@
-
-databases:
-  - name: 'tf_flowers'
-    split:
-      training: 80
-      validation: 10
-      test: 10
