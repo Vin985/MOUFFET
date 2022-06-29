@@ -18,12 +18,12 @@ DEFAULTS = {
 }
 
 
-def launch_runs(args, handler_classes):
+def launch_runs(args, handler_classes, defaults=None):
     for run in args.runs:
-        launch_run(run, args, handler_classes)
+        launch_run(run, args, handler_classes, defaults)
 
 
-def launch_run(run, args, handler_classes):
+def launch_run(run, args, handler_classes, defaults):
     opts_path = Path(args.run_dir) / run
     dest_dir = Path(args.dest_dir) / run
     log_dir = Path(args.log_dir) / run
