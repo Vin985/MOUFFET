@@ -1,7 +1,5 @@
 from argparse import ArgumentParser
 
-# from .utils import DEFAULTS
-
 
 class RunArgumentParser(ArgumentParser):
     def __init__(self, *args, default_args=None, **kwargs):
