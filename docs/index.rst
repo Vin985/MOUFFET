@@ -36,6 +36,7 @@ and model framework agnostic. This means that several models created with differ
    :maxdepth: 2
    :caption: Core concepts
 
+   configuration
    scenarios
    handlers
 
