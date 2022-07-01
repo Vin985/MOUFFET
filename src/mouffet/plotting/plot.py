@@ -9,20 +9,21 @@ class Plot:
     def __init__(self) -> None:
         self.pkg = None
 
-    def set_plotting_method(self, options=None):
-        if options is None:
-            options = {}
+    def set_plotting_package(self, pkg=None, options=None):
+        if not pkg:
+            if options is None:
+                options = {}
+            pkg = options.get("plotting_package", self.DEFAULT_PLOTTING_PACKAGE)
         try:
-            method = options.get("plotting_package", self.DEFAULT_PLOTTING_PACKAGE)
-            self.pkg = import_module(method)
+            self.pkg = import_module(pkg)
         except ImportError:
-            print("Error! Package {} was not found".format(method))
+            print("Error! Package {} was not found".format(pkg))
 
     def __getattr__(self, name):
         if not name.startswith("__"):
             if self.pkg is None:
                 print("setting default plotting method")
-                self.set_plotting_method()
+                self.set_plotting_package()
             return getattr(self.pkg, name)
         return getattr(super(), name)
 
