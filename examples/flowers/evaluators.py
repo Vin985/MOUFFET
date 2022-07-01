@@ -1,8 +1,13 @@
 import pandas as pd
 from mouffet.evaluation import Evaluator
 from mouffet import common_utils
-from sklearn.metrics import classification_report
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    ConfusionMatrixDisplay,
+)
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class CustomEvaluator(Evaluator):
@@ -15,7 +20,17 @@ class CustomEvaluator(Evaluator):
                 res.append(metadata.features["label"].int2str(int(x)))
         return res
 
+    def plot_confusion_matrix(self, data, options):
+        cm = confusion_matrix(data["labels"], data["predictions"])
+        cm_plot = ConfusionMatrixDisplay(
+            confusion_matrix=cm, display_labels=data["label_names"]
+        )
+        cm_plot.plot()
+        plt.title("test")
+        return cm_plot
+
     def evaluate(self, data, options, infos):
+        res = {}
         preds, labels, meta = data
         # * Get class with the best prediction score
         thresh = options.get("threshold", -1)
@@ -39,7 +54,18 @@ class CustomEvaluator(Evaluator):
         common_utils.print_warning(
             classification_report(labels, top_class, target_names=label_names)
         )
-        return {
-            "stats": pd.DataFrame([cr]),
-            "matches": pd.DataFrame(equals),
-        }
+
+        res["stats"] = pd.DataFrame([cr])
+        res["matches"] = pd.DataFrame(equals)
+
+        if options.get("draw_plots", False):
+            res["plots"] = self.draw_plots(
+                data={
+                    "labels": labels,
+                    "predictions": top_class,
+                    "label_names": label_names,
+                },
+                options=options,
+            )
+
+        return res

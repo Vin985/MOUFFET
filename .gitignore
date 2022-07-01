@@ -127,4 +127,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-examples/tensorflow/results
+examples/flowers/results
