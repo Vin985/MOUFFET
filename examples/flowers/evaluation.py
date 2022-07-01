@@ -28,18 +28,6 @@ class FlowersEvaluationHandler(EvaluationHandler):
         """
         # * Get raw data
         raw_data = self.data_handler.load_dataset("test", database, {})
-        # if evaluator_opts.get("use_raw_data", False):
-        #     # * We evaluate the model directly from built-in functions
-        #     # * Note: Evaluation is usually done in evaluators. However, evaluators
-        #     # * do not have access to models and thus this is performed here
-        #     model_opts.opts["augment_data"] = False
-        #     model_opts.opts["shuffle_data"] = False
-        #     model_opts.opts["inference"] = True
-        #     model = self.load_model(model_opts)
-        #     data = self.data_handler.prepare_dataset(raw_data, model_opts)
-        #     data = model.model.evaluate(data["data"], return_dict=True)
-        # else:
-        # * We do everything manully
         # * Get the predictions (will call predict_database)
         model_opts.opts["shuffle_data"] = False
         model_opts.opts["augment_data"] = False
@@ -79,7 +67,7 @@ class FlowersEvaluationHandler(EvaluationHandler):
 
         return preds, infos
 
-    def plot_test(self, res):
+    def plot_accuracy_f1(self, res):
         stats = res["stats"]
         cust_stats = stats.loc[stats.evaluator == "custom"]
         if not cust_stats.empty:
