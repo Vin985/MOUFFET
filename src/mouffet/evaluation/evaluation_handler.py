@@ -49,7 +49,7 @@ class EvaluationHandler(ModelHandler):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        plot.set_plotting_method(self.opts)  # pylint: disable=no-member
+        # plot.set_plotting_package(options=self.opts)  # pylint: disable=no-member
 
     @abstractmethod
     def predict_database(self, model, database, db_type="test"):
@@ -164,6 +164,13 @@ class EvaluationHandler(ModelHandler):
         res.reset_index(inplace=True, drop=True)
         res.to_feather(pr_file)
 
+    def check_plotting_package(self, key):
+        plt_pkg = self.opts.get("plot_options", {}).get(key, {}).get("package", "")
+        if plt_pkg and plt_pkg != plot.pkg:  # pylint: disable=no-member
+            plot.set_plotting_package(pkg=plt_pkg)  # pylint: disable=no-member
+        elif plot.pkg != plot.DEFAULT_PLOTTING_PACKAGE:  # pylint: disable=no-member
+            plot.set_plotting_package()  # pylint: disable=no-member
+
     def save_results(self, res):
         file_names = {}
         if res:
@@ -195,8 +202,8 @@ class EvaluationHandler(ModelHandler):
                 plots = res.get(plot_type + "plots", {})
                 if plots:
                     for key, values in plots.items():
+                        self.check_plotting_package(key)
                         if values:
-                            # pylint: disable=no-member
                             plot_file_path = res_dir / (
                                 "_".join(
                                     filter(
