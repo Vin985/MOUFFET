@@ -57,13 +57,13 @@ class Evaluator(ABC):
             res = plot.plot_PR_curve(res, options)  # pylint: disable=no-member
         return res
 
-    def draw_plots(self, data, options):
+    def draw_plots(self, data, options, infos):
         res = {}
         plots = options.get("plots", self.DEFAULT_PLOTS)
         for to_plot in plots:
             func_name = "plot_" + to_plot.strip()
             if hasattr(self, func_name) and callable(getattr(self, func_name)):
-                tmp = getattr(self, func_name)(data, options)
+                tmp = getattr(self, func_name)(data, options, infos)
                 res[to_plot] = tmp
         return res
 
