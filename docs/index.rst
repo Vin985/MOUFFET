@@ -38,7 +38,7 @@ and model framework agnostic. This means that several models created with differ
 
    configuration
    scenarios
-   handlers
+   classes
 
 .. toctree::
    :maxdepth: 2

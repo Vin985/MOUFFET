@@ -21,9 +21,21 @@ Global options used for every database can be defined outside the "databases" op
 Training configuration file
 ---------------------------
 
-This is the file where all options related to the creation of a model are stored. This includes the paths where to save the models, the options used to train a model but also the data that will be used to train the model. As such, the training configuration file requires to be linked to a data configuration file. Note that during this task, the training and validation datasets of a database will be used.be used.
+This is the file where all options related to the creation of a model are stored.
+This includes the paths where to save the models, the options used to train a model but also the
+data that will be used to train the model. As such, the training configuration file requires to be
+linked to a data configuration file. Note that during this task, the training and validation 
+datasets of a database will be used.
 
 Evaluation configuration file
 -----------------------------
 
-This is the file containing all options related to the evaluation of a model. This includes the paths where to save the predictions and results of the evaluation, which model to use, and which databases to use for the evaluation. As such, this file must also contain a reference to the data configuration file. Note that this task uses the test datasets.  These files also contain information on which evaluators to use to assess the performance of the model and with what options to use them (see below for more information on evaluators).
+This is the file containing all options related to the evaluation of a model. This includes the 
+paths where to save the predictions and results of the evaluation, which model to use, and which
+databases to use for the evaluation. As such, this file must also contain a reference to the data
+configuration file. Note that this task uses the test datasets. These files also contain
+information on which evaluators to use to assess the performance of the model and with what options
+to use them (see below for more information on evaluators).
+
+
+To avoid unnecessary duplication of the configuration files, it is also possible to define "parent" files that contain common options that do not change between iterations and will be inherited by the current files.
