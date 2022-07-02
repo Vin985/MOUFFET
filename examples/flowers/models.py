@@ -29,6 +29,8 @@ class FlowersClassifier(DLModel):
         early_stopping = self.opts.get("early_stopping", {})
         callbacks = []
         if early_stopping:
+            if not isinstance(early_stopping, dict):
+                early_stopping = {}
             callbacks.append(
                 tf.keras.callbacks.EarlyStopping(
                     # * Stop training when `val_loss` is no longer improving
@@ -36,7 +38,7 @@ class FlowersClassifier(DLModel):
                     # * "no longer improving" being defined as "no better than 1e-2 less"
                     min_delta=early_stopping.get("min_delta", 1e-2),
                     # * "no longer improving" being further defined as "for at least 2 epochs"
-                    patience=early_stopping.get("patience", 2),
+                    patience=early_stopping.get("patience", 3),
                     verbose=early_stopping.get("verbose", 1),
                     restore_best_weights=early_stopping.get(
                         "restore_best_weights", True
@@ -47,7 +49,7 @@ class FlowersClassifier(DLModel):
         history = self.model.fit(
             training_data["data"],
             validation_data=validation_data["data"],
-            epochs=self.opts.get("n_epochs", 3),
+            epochs=self.opts.get("n_epochs", 20),
             callbacks=callbacks,
         )
         # * Return information saved in callbacks
