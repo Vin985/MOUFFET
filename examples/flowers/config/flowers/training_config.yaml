@@ -1,6 +1,6 @@
 ## Paths ##
 data_config: "config/flowers/data_config.yaml"
-model_dir: 'results/models'
+model_dir: "results/models"
 
 ## Databases ##
 databases: ["tf_flowers"]
