@@ -1,0 +1,23 @@
+## Paths ##
+data_config: "tests/config/data_config.yaml"
+model_dir: "results/models"
+
+## Databases ##
+databases: ["tf_flowers"]
+
+## Model ##
+class: ".flowers.models.FlowersClassifier"
+n_epochs: 20
+shuffle_data: True
+batch_size: 32
+augment_data: True
+early_stopping:
+  patience: 3
+
+skip_trained: True
+
+## Scenarios ##
+scenarios:
+  - name: "no_augment"
+    augment_data: False
+    repeat_scenario: 3

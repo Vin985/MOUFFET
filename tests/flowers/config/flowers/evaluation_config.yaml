@@ -1,0 +1,46 @@
+## Paths ##
+predictions_dir: "results/predictions"
+evaluation_dir: "results/evaluation"
+data_config: "config/flowers/data_config.yaml"
+
+save_results: True
+
+
+## Databases ##
+databases:
+  - name: tf_flowers
+
+## Evaluators ##
+draw_global_plots: True
+global_plots: ["accuracy_f1"]
+
+evaluators_options:
+  draw_plots: True
+  plots: ["confusion_matrix"]
+
+plot_options:
+  confusion_matrix:
+    package: mouffet.plotting.sklearn
+
+
+evaluators: 
+  - type: "custom"
+    scenarios:
+      threshold: [-1, 0.3, 0.5, 0.75]
+
+## Models ##
+models_options:
+  model_dir: "results/models"
+  shuffle_data: False
+  augment_data: False
+
+models:
+  - name: "simple_no_augment"
+    class: ".models.FlowersClassifier"
+  - name: "simple_augment"
+    class: ".models.FlowersClassifier"
+    suffix: "_rot-{rotation}_flip-{flip}"
+    scenarios: 
+      rotation: [0.2, 0.3]
+      flip: ["horizontal", "horizontal_and_vertical"]
+
