@@ -1,40 +1,72 @@
+###########
 ## Paths ##
-predictions_dir: "results/predictions"
-evaluation_dir: "results/evaluation"
+###########
+
+# Where to find the data configuration file
 data_config: "config/flowers/data_config.yaml"
+# Where to save predictions
+predictions_dir: "results/predictions"
+# Where to save evaluation results
+evaluation_dir: "results/evaluation"
 
-save_results: True
-
-
+###############
 ## Databases ##
+###############
+
+# List databases to use during the evaluation. Only the test datasets will be used. databases
+# without test datasets will be skipped
 databases:
   - name: tf_flowers
 
-## Evaluators ##
+###########
+## Plots ##
+###########
+
+# Draw plots with results from all evaluation
 draw_global_plots: True
+# List of plots to draw
 global_plots: ["accuracy_f1"]
 
+## Global options for all evaluators
 evaluators_options:
+  # Draw plots with results from each evaluator
   draw_plots: True
+  # Which plots to draw
   plots: ["confusion_matrix"]
 
+## Options for specific plots
 plot_options:
   confusion_matrix:
+    # Which package to use to draw the plots
     package: mouffet.plotting.sklearn
 
+################
+## Evaluators ##
+################
 
+# List evaluators to use
 evaluators: 
   - type: "custom"
+    # Change thresholds values
     scenarios:
       threshold: [-1, 0.3, 0.5, 0.75]
 
+############
 ## Models ##
+############
+
+## Global options for all models
 models_options:
+  # where to find the models
   model_dir: "results/models"
+  # Do not shuffle data for evaluation
   shuffle_data: False
+  # Do not augment data for evaluation
   augment_data: False
 
+# List all models used for evaluation
 models:
+  # The entries below are copied from the training_config.yaml file. This is not used during the runs
   - name: "simple_no_augment"
     class: ".models.FlowersClassifier"
   - name: "simple_augment"

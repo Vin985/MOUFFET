@@ -1,27 +1,57 @@
+###########
 ## Paths ##
+###########
+
+# Where to find the data configuration file
 data_config: "config/flowers/data_config.yaml"
+# Where to sdave the models
 model_dir: "results/models"
 
+###############
 ## Databases ##
+###############
+
+# List the databases to use. The training and validation datasets will be used.
 databases: ["tf_flowers"]
 
+###########
 ## Model ##
+###########
+
+# All options below will be applied to all models unless overwritten
+
+# Class of the model
 class: ".models.FlowersClassifier"
+# Maximum number of iterations for training
 n_epochs: 20
+# Shuffle the data for each epoch
 shuffle_data: True
+# Number of images passed to the model at the same time
 batch_size: 32
+# Augment the data
 augment_data: True
+
+# Stop training if no improvement is noticed
 early_stopping:
   patience: 3
 
+# Do not train models that already exist
 skip_trained: True
 
+###############
 ## Scenarios ##
+###############
+
+# Training scenarios 
 scenarios:
+  # Do not augment the data
   - name: "no_augment"
     augment_data: False
+  # Augment the data with different values
   - name: "augment"
+    # Suffix to add to the name depending on the values of the variables
     suffix: "_rot-{rotation}_flip-{flip}"
+    # Rotation values
     rotation: [0.2, 0.3]
+    # Filp values
     flip: ["horizontal", "horizontal_and_vertical"]
-    augment_data: True
