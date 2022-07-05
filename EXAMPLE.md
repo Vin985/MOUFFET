@@ -2,7 +2,7 @@
 
 A full documentation explaining in detail the example can be found here:
 https://mouffet.readthedocs.io/en/latest/tutorial.html
-<br/>
+
 
 ## Install Mouffet
 
