@@ -70,7 +70,6 @@ class TrainingHandler(ModelHandler):
     def is_already_trained(self, scenario, models_stats, model_opts):
         if model_opts.get("skip_trained", False):
             print("Checking if already trained")
-            print(str(scenario))
             tmp = models_stats.loc[
                 models_stats.opts == str(scenario)  # pylint: disable=no-member
             ]
@@ -99,7 +98,7 @@ class TrainingHandler(ModelHandler):
                 common_utils.print_info(
                     "Training for the model has already been completed and 'skip_trained' is True. Skipping scenario"
                 )
-                return
+                return 2
 
             # *  Get model instance
             model = self.get_model_instance(model_opts)
@@ -107,7 +106,7 @@ class TrainingHandler(ModelHandler):
                 common_utils.print_error(
                     "Skipping training because options are invalid"
                 )
-                return
+                return -1
 
             # * Check datasets
             databases = self.get_scenario_databases_options(scenario)
@@ -151,6 +150,8 @@ class TrainingHandler(ModelHandler):
             file_utils.ensure_path_exists(models_stats_path, is_file=True)
             models_stats.to_csv(models_stats_path, index=False)
 
+            return 1
+
         except Exception:
             print(traceback.format_exc())
             common_utils.print_error(
@@ -163,5 +164,4 @@ class TrainingHandler(ModelHandler):
                 "An instance of class DataHandler must be provided in data_handler"
                 + "attribute or at class initialisation"
             )
-        for scenario in self.scenarios:
-            self.train_scenario(scenario)
+        return [self.train_scenario(scenario) for scenario in self.scenarios]
