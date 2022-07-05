@@ -2,20 +2,21 @@
 
 A full documentation explaining in detail the example can be found here:
 https://mouffet.readthedocs.io/en/latest/tutorial.html
-\
+<br/>
 
 ## Install Mouffet
 
 Details instructions to install Mouffet can be found on the main page of the Mouffet github repository:
 https://github.com/Vin985/mouffet
-\
+
 
 ## Install additional dependencies
 
 Additional dependencies are required to run the example. To install them, in your command line type
 
     pip install tensorflow tensorflow-datasets plotnine sklearn
-\
+
+
 ## Download the exemple
 
 Download the example at this address: 
@@ -23,8 +24,8 @@ Download the example at this address:
     https://github.com/Vin985/mouffet/blob/main/examples/flowers_example.zip
 
 Extract the archive where you desire. Open a terminal and go to the 'flowers' folder of the example.
-\
-  
+
+
 ## Launch the training example
 
 To run the training example, you only need to type this in the command line
@@ -32,8 +33,8 @@ To run the training example, you only need to type this in the command line
     python training.py
 
 By default, you will find the models saved in the results/models folder
-\
-  
+
+
 ## Launch the evaluation example
 
 To run the training example, you only need to type this in the command line
@@ -52,9 +53,6 @@ The evaluation will generate the following files:
  contains the plots of f1_score in function of accuracy for all results. All fixes are prefixed by
  a timestamp in the hhmmss format.
 
-  
-  
-  
 ## Launch a full run
 
 To launch a run that will perform both training and evaluation, we need to call the file run.py with
