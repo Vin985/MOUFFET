@@ -53,6 +53,8 @@ The evaluation will generate the following files:
  a timestamp in the hhmmss format.
 
   
+  
+  
 ## Launch a full run
 
 To launch a run that will perform both training and evaluation, we need to call the file run.py with
