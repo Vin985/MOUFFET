@@ -5,7 +5,6 @@ import os
 
 
 def test_nscenarios():
-    print(os.getcwd())
     trainer = TrainingHandler(
         opts_path="tests/config/training_config.yaml",
         dh_class=FlowersDataHandler,
@@ -14,9 +13,16 @@ def test_nscenarios():
 
 
 def test_repeat():
-    print(os.getcwd())
     trainer = TrainingHandler(
         opts_path="tests/config/training/training_repeat.yaml",
         dh_class=FlowersDataHandler,
     )
     assert len(trainer.scenarios) == 3
+
+
+def test_already_trained():
+    trainer = TrainingHandler(
+        opts_path="tests/config/training/training_already_trained.yaml",
+        dh_class=FlowersDataHandler,
+    )
+    assert trainer.train() == [2]
