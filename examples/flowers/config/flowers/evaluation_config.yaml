@@ -67,9 +67,9 @@ models_options:
 # List all models used for evaluation
 models:
   # The entries below are copied from the training_config.yaml file. This is not used during the runs
-  - name: "simple_no_augment"
+  - name: "no_augment"
     class: ".models.FlowersClassifier"
-  - name: "simple_augment"
+  - name: "augment"
     class: ".models.FlowersClassifier"
     suffix: "_rot-{rotation}_flip-{flip}"
     scenarios: 
