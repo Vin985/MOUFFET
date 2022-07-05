@@ -14,6 +14,7 @@ from plotnine import (
     ylab,
     scale_shape_discrete,
     scale_color_discrete,
+    scale_color_brewer,
 )
 
 import ast
@@ -80,7 +81,7 @@ class FlowersEvaluationHandler(EvaluationHandler):
         threshold_labels = [
             str(x) for x in f1_scores["threshold"].cat.categories.values
         ]
-        threshold_labels[threshold_labels == -1] = "Max value"
+        threshold_labels[threshold_labels == -1] = "-1 (Max value)"
 
         plt = (
             ggplot(
@@ -117,6 +118,6 @@ class FlowersEvaluationHandler(EvaluationHandler):
                     "no_aug",
                 ]
             )
-            + scale_color_discrete(labels=threshold_labels)
+            + scale_color_brewer(type="div", palette="RdYlBu", labels=threshold_labels)
         )
         return [plt]
