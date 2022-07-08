@@ -1,7 +1,7 @@
-
+# List all databases
 databases:
-    - name: 'tf_flowers'
-      split:
+    - name: 'tf_flowers' # Provide the name of the database
+      split: # Define how to split the data for training, validation and test purposes
         training: 80
         validation: 10
         test: 10

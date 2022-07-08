@@ -4,7 +4,7 @@
 
 # Where to find the data configuration file
 data_config: "config/flowers/data_config.yaml"
-# Where to sdave the models
+# Where to save the models
 model_dir: "results/models"
 
 ###############

@@ -115,6 +115,11 @@ class Dataset(DataStructure):
         self.save(loader.data)
 
     def save(self, data):
+        """_summary_
+
+        Args:
+            data (_type_): _description_
+        """
         if data:
             for key, value in data.items():
                 path = self.paths["save_dests"][self.db_type][key]
@@ -144,39 +149,56 @@ class Dataset(DataStructure):
         return loader
 
     def load(self, load_opts=None):
+        """_summary_
+
+        Args:
+            load_opts (_type_, optional): _description_. Defaults to None.
+        """
         loader = self.get_loader()
         loader.load_dataset(self.paths, self.db_type, load_opts)
         self.data = loader.data
 
     def exists(self):
+        """_summary_
+
+        Returns:
+            _type_: _description_
+        """
         for key in self.structure.keys():
             if not self.paths["save_dests"][self.db_type][key].exists():
                 return False
         return True
 
     def summarize(self):
+        """_summary_
+
+        Returns:
+            _type_: _description_
+        """
         return {}
 
     def get_raw_data(self):
+        """_summary_"""
         pass
 
     def get_ground_truth(self):
+        """_summary_"""
         pass
 
     def __getitem__(self, key):
         return self.data[key]
 
-    def from_file_list(self, file_list, opts):
-        pass
+    # def from_file_list(self, file_list, opts):
+    #     pass
 
-    def from_folder(self, folder_path, opts):
-        pass
+    # def from_folder(self, folder_path, opts):
+    #     pass
 
-    def __iter__(self):
-        loader = self.get_loader()
-        if self.file_list is not None:
-            for file_path in self.file_list:
-                yield
+    # def __iter__(self):
+    #     loader = self.get_loader()
+    #     if self.file_list is not None:
+    #         for file_path in self.file_list:
+    #             yield
 
     def copy(self):
         return self.__class__(self.db_type)

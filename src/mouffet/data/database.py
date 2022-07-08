@@ -21,6 +21,11 @@ class Database(DatabaseOptions):
         return self._paths
 
     def get_paths(self):
+        """_summary_
+
+        Returns:
+            _type_: _description_
+        """
         paths = {}
         root_dir = self.root_dir
 
@@ -148,6 +153,11 @@ class Database(DatabaseOptions):
         return res
 
     def check_dataset(self, db_types=None):
+        """_summary_
+
+        Args:
+            db_types (_type_, optional): _description_. Defaults to None.
+        """
         file_lists = self.check_file_lists(db_types)
         for db_type, file_list in file_lists.items():
             if db_types and db_type in db_types:

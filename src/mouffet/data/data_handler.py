@@ -114,6 +114,15 @@ class DataHandler:
         return merged
 
     def prepare_dataset(self, dataset, opts):
+        """_summary_
+
+        Args:
+            dataset (_type_): _description_
+            opts (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
         return dataset
 
     def get_database(self, name):

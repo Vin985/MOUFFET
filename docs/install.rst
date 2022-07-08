@@ -21,7 +21,9 @@ the following command in the terminal:
 
     > python
 
-This should launch a python terminal. To exit the python terminal, type:::
+This should launch a python terminal. To exit the python terminal, type:
+
+.. code-block:: bash
 
     > exit()
 
