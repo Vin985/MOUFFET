@@ -6,11 +6,7 @@ from data import FlowersDataHandler
 from evaluation import FlowersEvaluationHandler
 from evaluators import CustomEvaluator
 
-# EVALUATORS.register_evaluator("tf", TFBasicEvaluator)
 EVALUATORS.register_evaluator("custom", CustomEvaluator)
-
-# parser = RunArgumentParser()
-# args = parser.parse_args()
 
 run_handler = RunHandler(
     handler_classes={
