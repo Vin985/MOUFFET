@@ -76,7 +76,7 @@ class ModelHandler(ABC):
         return dh
 
     @classmethod
-    def load_model(cls, model_opts, ignore_parent_path=False):
+    def load_model(cls, model_opts):
         """Load a model from the options provided by model_opts. Note: the options
         saved during training will be loaded and overriden by the relevant options from
         model_opts (especially the paths). One exception is the "id" and "id_prefixes" options
@@ -89,6 +89,7 @@ class ModelHandler(ABC):
         Returns:
             mouffet.model.DLModel: the loaded model
         """
+        ignore_parent_path = model_opts.get("ignore_parent_path", False)
         version = model_opts.load_version
         old_opts = file_utils.load_config(
             Path(model_opts.model_dir)
