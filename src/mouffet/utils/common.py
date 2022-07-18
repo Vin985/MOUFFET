@@ -1,6 +1,7 @@
 import collections.abc
 from copy import deepcopy
 from itertools import product
+import re
 
 
 TERM_COLORS = {
@@ -202,3 +203,26 @@ def list2str(value, sep="-"):
     if isinstance(value, list):
         value = sep.join([list2str(i) for i in value])
     return str(value)
+
+
+def resolve_dict_pattern(opts, pattern_name, path_separator="--"):
+    pattern = opts.get(pattern_name, "")
+    mid = ""
+    if pattern:
+        prefixes = opts.get(pattern_name + "_prepend", {})
+        to_replace = re.findall("\\{(.+?)\\}", pattern)
+        res = {}
+        for key in to_replace:
+            mid = ""
+            if prefixes:
+                prefix = prefixes.get(key, prefixes.get("default", ""))
+                mid += str(prefix)
+            if path_separator in key:
+                value = get_dict_path(opts, key, key, sep=path_separator)
+            else:
+                value = opts.get(key, key)
+            mid += list2str(value)
+            res[key] = mid
+
+        mid = pattern.format(**res)
+    return mid

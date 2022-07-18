@@ -1,4 +1,3 @@
-import re
 import shutil
 
 from copy import deepcopy
@@ -127,35 +126,14 @@ class ModelOptions(Options):
             if conf_id:
                 self._model_id = conf_id
             else:
-                self._model_id = self.name + self.add_suffix()
-            # self.opts["model_id"] = self._model_id
+                self._model_id = self.name + common_utils.resolve_dict_pattern(
+                    self.opts, "suffix"
+                )
         return self._model_id
 
     @model_id.setter
     def model_id(self, value):
         self._model_id = value
-
-    def add_suffix(self):
-        pattern = self.suffix
-        prefixes = self.suffix_prepend
-        to_replace = re.findall("\\{(.+?)\\}", pattern)
-        res = {}
-        for key in to_replace:
-            mid = ""
-            if prefixes:
-                prefix = prefixes.get(key, prefixes.get("default", ""))
-                mid += str(prefix)
-            if self.DICT_PATH_SEPARATOR in key:
-                value = common_utils.get_dict_path(
-                    self.opts, key, key, sep=self.DICT_PATH_SEPARATOR
-                )
-            else:
-                value = self.opts.get(key, key)
-            mid += common_utils.list2str(value)
-            res[key] = mid
-
-        mid = pattern.format(**res)
-        return mid
 
     def get_last_version(self):
         version = 0
