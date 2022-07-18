@@ -43,7 +43,8 @@ class DataHandler:
         return databases
 
     def duplicate_database(self, database):
-        """Duplicates the provided database
+        """Checks in the database list the database whose name is similar to the `database` argument.
+        Then duplicates it and updates any options contained in `database`
 
         Args:
             database (instance of DataHandler.OPTIONS_CLASS): The database to duplicate
