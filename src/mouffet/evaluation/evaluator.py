@@ -8,6 +8,8 @@ from ..plotting import plot
 
 class Evaluator(ABC):
 
+    NAME = ""
+
     DEFAULT_PR_CURVE_OPTIONS = {
         "variable": "activity_threshold",
         "values": {"start": 0, "end": 1, "step": 0.05},
@@ -69,3 +71,14 @@ class Evaluator(ABC):
 
     def filter_predictions(self, data, options):
         return []
+
+    def check_database(self, data, options, infos):
+        if infos["database"] not in options.get(self.NAME + "_databases", []):
+            common_utils.print_info(
+                (
+                    "Database {0} is not part of the accepted databases for the '{1}' "
+                    + "evaluator described in the '{1}_databases' option. Skipping."
+                ).format(options["scenario_info"]["database"], self.NAME)
+            )
+            return False
+        return True

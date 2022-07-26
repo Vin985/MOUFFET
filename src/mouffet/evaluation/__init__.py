@@ -5,7 +5,7 @@ class _Evaluators:
     def __init__(self):
         self._evaluators = {}
 
-    def register_evaluator(self, name, evaluator):
+    def register_evaluator(self, evaluator):
         error = False
         if isinstance(evaluator, type):
             if issubclass(evaluator, Evaluator):
@@ -19,13 +19,13 @@ class _Evaluators:
                 "evaluator should be either a class or an instance"
                 + " of a subclass of the mouffet.evaluation.Evaluator class"
             )
-        self._evaluators[name] = evaluator
+        self._evaluators[evaluator.NAME] = evaluator
 
     def register_evaluators(self, evaluators):
-        if not isinstance(evaluators, dict):
-            raise AttributeError("'evaluators' should be a dict")
-        for key, val in evaluators.items():
-            self.register_evaluator(key, val)
+        # if not isinstance(evaluators, dict):
+        #     raise AttributeError("'evaluators' should be a dict")
+        for evaluator in evaluators:
+            self.register_evaluator(evaluator)
 
     def __getitem__(self, name):
         if name is None:
