@@ -7,7 +7,6 @@ class DatabaseOptions(Options):
 
     DEFAULT_VALUES = {
         "class_type": "",
-        "classes_file": "classes.csv",
         "db_types": DB_TYPES,
         "data_extensions": [""],
         "generate_file_lists": False,
@@ -18,9 +17,5 @@ class DatabaseOptions(Options):
         "subfolders": None,
     }
 
-    @property
-    def types(self):
-        return self.opts.get("db_types", self.DB_TYPES)
-
     def has_type(self, db_type):
-        return db_type in self.types
+        return db_type in self.db_types
