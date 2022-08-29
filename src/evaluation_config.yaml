@@ -32,7 +32,7 @@ evaluators:
   - type: "subsampling"
     scenarios:
       sample_step: [0, 1]
-      event_threshold: [0.5, 0.95]
+      activity_threshold: [0.5, 0.95]
 
 ############
 ## Models ##
