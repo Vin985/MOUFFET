@@ -69,7 +69,7 @@ class Evaluator(ABC):
                 res[to_plot] = tmp
         return res
 
-    def filter_predictions(self, data, options):
+    def filter_predictions(self, data, options, tags=None):
         return []
 
     def check_database(self, data, options, infos):
