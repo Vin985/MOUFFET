@@ -44,29 +44,15 @@ class DataStructure:
             self.structure[key]["extension"] = ext
         return ext
 
-    def default_file_name(self, key, db_type, database):
-        return db_type + "_" + key + "." + self.get_extension(key)
+    def function_exists(self, func_name):
+        return hasattr(self, func_name) and callable(getattr(self, func_name))
 
-    def tags_file_name(self, key, db_type, database):
-        return (
-            db_type
-            + "_"
-            + key
-            + "_"
-            + database.class_type
-            + "."
-            + self.get_extension(key)
-        )
-
-    def get_file_name(self, key, db_type, database):
-        func_name = key + "_file_name"
-        if hasattr(self, func_name) and callable(getattr(self, func_name)):
-            func = getattr(self, func_name)
-        else:
+    def get_structure_function(self, key, name, *args, **kwargs):
+        func_name = key + "_" + name
+        if not self.function_exists(func_name):
             key_type = self.structure[key].get("type", "default")
-            func_name = key_type + "_file_name"
-            if hasattr(self, func_name) and callable(getattr(self, func_name)):
-                func = getattr(self, func_name)
-            else:
-                func = self.default_file_name
-        return func(key, db_type, database)
+            func_name = key_type + "_" + name
+            if not self.function_exists(func_name):
+                func_name = "default" + "_" + name
+        func = getattr(self, func_name)
+        return func(key, *args, **kwargs)
