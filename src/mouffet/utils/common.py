@@ -226,3 +226,7 @@ def resolve_dict_pattern(opts, pattern_name, path_separator="--"):
 
         mid = pattern.format(**res)
     return mid
+
+
+def any_in_list(elements, in_list):
+    return len(set(elements).intersection(in_list)) > 0
