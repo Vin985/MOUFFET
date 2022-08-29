@@ -64,23 +64,29 @@ def load_config(opts_path, ignore_parent_path=False):
 
 
 def get_full_path(path, root):
+    path = Path(path)
     if path.is_absolute() or not root:
         return path
     else:
         return root / path
 
 
+def load_csv_file(path):
+    file_list = []
+    with open(path, mode="r") as f:
+        reader = csv.reader(f)
+        for name in reader:
+            file_list.append(Path(name[0]))
+        print("Loaded file: " + str(path))
+    return file_list
+
+
 def load_file_lists(paths, db_types=None):
     res = {}
     for db_type, path in paths["file_list"].items():
         if db_types and db_type in db_types:
-            file_list = []
-            with open(path, mode="r") as f:
-                reader = csv.reader(f)
-                for name in reader:
-                    file_list.append(Path(name[0]))
+            file_list = load_csv_file(path)
             res[db_type] = file_list
-            print("Loaded file: " + str(path))
     return res
 
 
