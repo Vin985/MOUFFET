@@ -97,10 +97,9 @@ class DataHandler:
     def check_datasets(self, databases=None, db_types=None):
         databases = databases or self.databases.values()
         for database in databases:
-            db_types = db_types or database.db_types
             if isinstance(database, str):
                 database = self.databases[database]
-            database.check_dataset(db_types)
+            database.check_database(db_types)
 
     def merge_datasets(self, datasets):
         merged = None
@@ -129,16 +128,7 @@ class DataHandler:
     def get_database(self, name):
         return self.databases.get(name, None)
 
-    def load_datasets(
-        self,
-        db_type,
-        databases=None,
-        by_dataset=False,
-        load_opts=None,
-        prepare=False,
-        prepare_func=None,
-        prepare_opts=None,
-    ):
+    def load_datasets(self, db_type, databases=None, by_dataset=False, **kwargs):
         """Load a dataset of type db_type.
         Can also prepare the dataset if the prepare argument is True.
         The user can provide a preparation function via prepare_func but by default will try to call
@@ -168,14 +158,7 @@ class DataHandler:
                         db_type, database["name"]
                     )
                 )
-                res[database["name"]] = self.load_dataset(
-                    db_type,
-                    database,
-                    load_opts,
-                    prepare,
-                    prepare_func,
-                    prepare_opts,
-                )
+                res[database["name"]] = self.load_dataset(db_type, database, **kwargs)
 
         if not by_dataset:
             res = self.merge_datasets(res)
@@ -202,17 +185,16 @@ class DataHandler:
             dataset = prepare_func(dataset, prepare_opts)
         return dataset
 
-    def get_summaries(
-        self, db_types=None, databases=None, detailed=True, load_opts=None
-    ):
+    def get_summaries(self, db_types=None, databases=None, all=False, load_opts=None):
         res = {}
         databases = databases or self.databases.values()
         # * Iterate over databases
         for database in databases:
-            db_types = db_types or database.db_types
+            ds_types = db_types or database.db_types
+            # database.check_datasets(ds_types)
 
             # * Only load data if the give db_type is in the database definition
-            for db_type in db_types:
+            for db_type in ds_types:
                 if not db_type in database.db_types:
                     continue
                 print(
@@ -220,8 +202,10 @@ class DataHandler:
                         db_type, database["name"]
                     )
                 )
-
+                # try:
                 dataset = database.load_dataset(db_type, load_opts)
+                # except ValueError:
+                # continue
                 summary = dataset.summarize()
 
                 if not database["name"] in res:

@@ -35,7 +35,16 @@ class Dataset(DataStructure):
         """
         return self.database.class_type
 
-    def get_subfolders(self):
+    def default_file_name(self, key, db_type, database):
+        return db_type + "_" + key + "." + self.get_extension(key)
+
+    def get_file_name(self, key, db_type, database):
+        return self.get_structure_function(key, "file_name", db_type, database)
+
+    def get_subfolders(self, key):
+        return self.get_structure_function(key, "subfolders")
+
+    def default_subfolders(self, file_type):
         """Generate subfolders based on a list provided in the 'use_subfolders' option.
         For each item in the list, this function will try to call the
         get_itemname_folder_path(database) method from the DataHandler instance, where itemname is
@@ -91,11 +100,13 @@ class Dataset(DataStructure):
         """
         res = {}
 
-        for key in self.structure.keys():
-            res[key] = (
+        for file_type in self.structure.keys():
+            res[file_type] = (
                 dest_dir
-                / self.get_subfolders()
-                / self.get_file_name(key, db_type=self.db_type, database=self.database)
+                / self.get_subfolders(file_type)
+                / self.get_file_name(
+                    file_type, db_type=self.db_type, database=self.database
+                )
             )
         return res
 
@@ -106,11 +117,16 @@ class Dataset(DataStructure):
             )
         return paths
 
-    def generate(self, file_list, overwrite):
+    def generate(self, file_list, missing, overwrite):
         loader_cls = self.LOADERS[self.database.get("loader", "default")]
         loader = loader_cls(self.get_structure_copy())
         loader.generate_dataset(
-            self.database, self.paths, file_list, self.db_type, overwrite
+            database=self.database,
+            paths=self.paths,
+            file_list=file_list,
+            db_type=self.db_type,
+            missing=missing,
+            overwrite=overwrite,
         )
         self.save(loader.data)
 
@@ -158,16 +174,20 @@ class Dataset(DataStructure):
         loader.load_dataset(self.paths, self.db_type, load_opts)
         self.data = loader.data
 
-    def exists(self):
+    def exists(self, file_types=None):
         """_summary_
 
         Returns:
             _type_: _description_
         """
+        res = []
+        file_types = file_types or {}
         for key in self.structure.keys():
+            if file_types and key not in file_types:
+                continue
             if not self.paths["save_dests"][self.db_type][key].exists():
-                return False
-        return True
+                res.append(key)
+        return res
 
     def summarize(self):
         """_summary_

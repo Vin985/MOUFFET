@@ -59,22 +59,9 @@ class DataLoader:
         (e.g. dataframe concatenation)
         """
 
-    def load_classes(self, database):
-        class_type = database.class_type
-        classes_file = database.classes_file
-
-        classes_df = pd.read_csv(classes_file, skip_blank_lines=True)
-        classes = (
-            classes_df.loc[
-                classes_df["class_type"]  # pylint: disable=unsubscriptable-object
-                == class_type
-            ]
-            .tag.str.lower()
-            .values
-        )
-        return classes
-
-    def generate_dataset(self, database, paths, file_list, db_type, overwrite):
+    def generate_dataset(
+        self, database, paths, file_list, db_type, missing=None, overwrite=False
+    ):
         """[summary]
 
         Args:
@@ -95,7 +82,10 @@ class DataLoader:
                 if not isinstance(file_path, Path):
                     file_path = Path(file_path)
                 intermediate = self.load_file_data(
-                    file_path=file_path, tags_dir=tags_dir, opts=db_opts
+                    file_path=file_path,
+                    tags_dir=tags_dir,
+                    opts=db_opts,
+                    missing=missing,
                 )
 
                 if database.save_intermediates:
@@ -108,7 +98,7 @@ class DataLoader:
             except Exception:
                 print("Error loading: " + str(file_path) + ", skipping.")
                 print(traceback.format_exc())
-                self.data = None
+                # self.data = None
         self.finalize_dataset()
 
     def get_file_types(self, load_opts):

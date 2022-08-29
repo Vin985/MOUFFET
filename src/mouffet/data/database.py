@@ -61,9 +61,47 @@ class Database(DatabaseOptions):
             )
         return paths
 
-    def check_file_lists(self, db_types=None):
+    def generate_file_lists(self):
+        print("Generating file lists...")
         file_lists = {}
-        msg = "Checking file lists for database {0}... ".format(self["name"])
+        # * Check if we have a dedicated function to split the original data
+        split_opts = self.get("split", None)
+        if split_opts:
+            file_lists = self.split()
+        else:
+            file_lists = self.get_data_file_lists()
+        # * Save results
+        for db_type, file_list in file_lists.items():
+            file_utils.save_file_list(db_type, file_list, self.paths)
+
+    def check_file_list(self, db_type):
+        if db_type not in self.db_types:
+            print(
+                f"Database {self.name} does not support a {db_type} dataset. Skipping"
+            )
+            return None
+        file_list_path = self.paths["file_list"][db_type]
+        if not file_list_path.exists():
+            self.generate_file_lists()
+        return self.load_file_list(db_type)
+
+    def load_file_list(self, db_type):
+        path = self.paths["file_list"][db_type]
+        return file_utils.load_csv_file(path)
+
+    def load_file_lists(self, db_types):
+        # * Load files
+        print("Found all file lists. Now loading...")
+        res = {}
+        for db_type, path in self.paths["file_list"].items():
+            if db_types and db_type in db_types:
+                file_list = file_utils.load_csv_file(path)
+                res[db_type] = file_list
+        return res
+
+    def check_file_lists(self, db_types=None):
+        print(f'Checking file lists for database {self["name"]}... ')
+        file_lists = {}
         if db_types is None:
             file_list_paths = self.paths["file_list"].values()
         else:
@@ -71,21 +109,9 @@ class Database(DatabaseOptions):
         file_lists_exist = all([path.exists() for path in file_list_paths])
         # * Check if file lists are missing or need to be regenerated
         if not file_lists_exist or self.generate_file_lists:
-            print(msg + "Generating file lists...")
-            file_lists = {}
-            # * Check if we have a dedicated function to split the original data
-            split_opts = self.get("split", None)
-            if split_opts:
-                file_lists = self.split()
-            else:
-                file_lists = self.get_data_file_lists()
-            # * Save results
-            for db_type, file_list in file_lists.items():
-                file_utils.save_file_list(db_type, file_list, self.paths)
+            self.generate_file_lists()
         else:
-            # * Load files
-            print(msg + "Found all file lists. Now loading...")
-            file_lists = file_utils.load_file_lists(self.paths, db_types)
+            file_lists = self.load_file_lists(db_types)
         return file_lists
 
     def get_data_file_lists(self, db_types=None):
@@ -152,33 +178,55 @@ class Database(DatabaseOptions):
         print([(k + " " + str(len(v))) for k, v in res.items()])
         return res
 
-    def check_dataset(self, db_types=None):
+    def check_dataset(self, db_type, file_types=None):
+        print(f'Checking {db_type} dataset for database {self["name"]}:')
+        if not db_type in self.db_types:
+            print(
+                f"Database {self.name} does not support a {db_type} dataset. Skipping"
+            )
+            return None
+        overwrite = self.get("overwrite", False) or self.get(
+            "generate_file_lists", False
+        )
+        dataset = self.DATASET(
+            database=self,
+            db_type=db_type,
+        )
+        missing = dataset.exists(file_types)
+        if missing or overwrite:
+            dataset.generate(self.load_file_list(db_type), missing, overwrite)
+        return dataset
+
+    def check_database(self, db_types=None):
         """_summary_
 
         Args:
             db_types (_type_, optional): _description_. Defaults to None.
         """
+        db_types = db_types or self.db_types
         file_lists = self.check_file_lists(db_types)
         for db_type, file_list in file_lists.items():
             if db_types and db_type in db_types:
-                print("Checking database:", self["name"], "with type", db_type)
+
                 # * Overwrite if generate_file_lists is true as file lists will be recreated
                 overwrite = self.overwrite or self.generate_file_lists
                 dataset = self.DATASET(
                     database=self,
                     db_type=db_type,
                 )
-                if not dataset.exists() or overwrite:
-                    dataset.generate(file_list, overwrite)
+                missing = dataset.exists()
+                if missing or overwrite:
+                    dataset.generate(file_list, missing, overwrite)
 
     def load_dataset(
         self,
         db_type,
         load_opts,
     ):
-        dataset = self.DATASET(
-            database=self,
-            db_type=db_type,
-        )
-        dataset.load(load_opts)
+
+        load_opts = load_opts or {}
+        file_types = load_opts.get("file_types", {})
+        dataset = self.check_dataset(db_type, file_types)
+        if dataset:
+            dataset.load(load_opts)
         return dataset

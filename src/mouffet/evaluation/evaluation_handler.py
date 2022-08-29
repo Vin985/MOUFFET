@@ -345,7 +345,7 @@ class EvaluationHandler(ModelHandler):
         return eval_result
 
     def get_evaluation_data(self, evaluator, database, model_opts, evaluator_opts):
-        database.check_dataset(["test"])
+        database.check_dataset("test")
         preds = self.get_predictions(model_opts, database)
         if evaluator_opts.get("filter_only", False):
             tags = None
