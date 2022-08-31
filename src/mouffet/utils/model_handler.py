@@ -30,27 +30,13 @@ class ModelHandler(ABC):
                     + "or the path to the config file via opts_path"
                 )
         self.opts = opts
-        # self._model = None
-        # self.model_class = model_class
         self._data_handler = None
-        # if model:
-        #     self.model = model
         if dh_class:
             self.DATA_HANDLER_CLASS = dh_class
         if dh:
             self.data_handler = dh
 
         self.scenarios = self.load_scenarios()
-
-    # @property
-    # def model(self):
-    #     return self._model
-
-    # @model.setter
-    # def model(self, model):
-    #     if model and not model.opts:
-    #         model.opts = self.opts
-    #     self._model = model
 
     @property
     def data_handler(self):
@@ -126,8 +112,6 @@ class ModelHandler(ABC):
                 "mouffet.models.dlmodel.DLModel or a string",
             )
 
-        # pkg = import_module(model["package"])
-        # cls = getattr(pkg, model["name"])
         if not cls:
             raise ValueError("No class named {} was found".format(model_class))
 
