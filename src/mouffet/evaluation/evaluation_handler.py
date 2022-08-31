@@ -416,6 +416,9 @@ class EvaluationHandler(ModelHandler):
             return {}
 
     def evaluate(self):
+        if not self.scenarios:
+            common_utils.print_warning("No scenarios found for this evaluator")
+            return []
         res = [self.evaluate_scenario(scenario) for scenario in self.scenarios]
         results = self.consolidate_results(res)
         if self.opts.get("draw_global_plots", False):
