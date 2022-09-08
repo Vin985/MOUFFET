@@ -1,4 +1,4 @@
-import collections.abc
+from collections.abc import Mapping
 from copy import deepcopy
 from itertools import product
 import re
@@ -52,7 +52,7 @@ def deep_dict_update(original, update, copy=False, replace=True, except_keys=Non
     Subdict's won't be overwritten but also updated.
     """
     except_keys = except_keys or []
-    if not isinstance(original, collections.Mapping):
+    if not isinstance(original, Mapping):
         if copy:
             update = deepcopy(update)
         return update
@@ -63,7 +63,7 @@ def deep_dict_update(original, update, copy=False, replace=True, except_keys=Non
             (not replace and not key in except_keys) or (replace and key in except_keys)
         ):
             continue
-        if isinstance(value, collections.Mapping):
+        if isinstance(value, Mapping):
             original[key] = deep_dict_update(original.get(key, {}), value, copy)
         else:
             original[key] = value
