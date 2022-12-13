@@ -17,7 +17,7 @@ setup(
     ),
     keywords="machine learning, unified framework, training, evaluation",
     # long_description=read('README.md'),
-    version="1.0.0",
+    version="1.0.1",
     packages=find_packages(),
     package_data={"": ["*.svg", "*.yaml", "*.zip", "*.ico", "*.bat"]},
     install_requires=["pandas", "feather-format", "pyyaml"],
