@@ -138,10 +138,13 @@ class Dataset(DataStructure):
         """
         if data:
             for key, value in data.items():
-                if isinstance(value, pd.DataFrame) and value.empty:
-                    continue
-                elif not value:
-                    continue
+                print(value)
+                if isinstance(value, pd.DataFrame):
+                    if value.empty:
+                        continue
+                else:
+                    if not value:
+                        continue
                 path = self.paths["save_dests"][self.db_type][key]
                 if path.suffix == ".pkl":
                     with open(
