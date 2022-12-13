@@ -99,7 +99,7 @@ class DataLoader:
                 print("Error loading: " + str(file_path) + ", skipping.")
                 print(traceback.format_exc())
                 # self.data = None
-        self.finalize_dataset()
+        self.finalize_dataset(missing)
 
     def get_file_types(self, load_opts):
         file_types = load_opts.get("file_types", "all")

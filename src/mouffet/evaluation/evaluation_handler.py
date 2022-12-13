@@ -93,7 +93,7 @@ class EvaluationHandler(ModelHandler):
             + ".feather"
         )
 
-    def on_get_predictions_end(self, preds):
+    def on_get_predictions_end(self, preds, model_opts):
         return preds
 
     def get_predictions(self, model_opts, database):
@@ -135,7 +135,7 @@ class EvaluationHandler(ModelHandler):
 
             pred_file.parent.mkdir(parents=True, exist_ok=True)
             feather.write_dataframe(preds, pred_file)
-        preds = self.on_get_predictions_end(preds)
+        preds = self.on_get_predictions_end(preds, model_opts)
         return preds
 
     def consolidate_results(self, results):
@@ -345,7 +345,7 @@ class EvaluationHandler(ModelHandler):
         return eval_result
 
     def get_evaluation_data(self, evaluator, database, model_opts, evaluator_opts):
-        database.check_dataset("test")
+        database.check_dataset("test", file_types=evaluator.REQUIRES)
         preds = self.get_predictions(model_opts, database)
         if evaluator_opts.get("filter_only", False):
             tags = None

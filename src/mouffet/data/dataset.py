@@ -138,6 +138,8 @@ class Dataset(DataStructure):
         """
         if data:
             for key, value in data.items():
+                if not value:
+                    continue
                 path = self.paths["save_dests"][self.db_type][key]
                 if path.suffix == ".pkl":
                     with open(
