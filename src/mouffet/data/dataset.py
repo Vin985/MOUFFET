@@ -138,6 +138,8 @@ class Dataset(DataStructure):
         """
         if data:
             for key, value in data.items():
+                if isinstance(value, pd.DataFrame) and value.empty:
+                    continue
                 if not value:
                     continue
                 path = self.paths["save_dests"][self.db_type][key]
