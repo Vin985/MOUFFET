@@ -169,11 +169,12 @@ class DataHandler:
         self,
         db_type,
         database,
-        load_opts,
+        load_opts=None,
         prepare=False,
         prepare_func=None,
         prepare_opts=None,
     ):
+        load_opts = load_opts or {}
         dataset = database.load_dataset(db_type, load_opts)
         if prepare:
             if prepare_func is None:
