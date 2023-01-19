@@ -44,6 +44,7 @@ class EvaluationHandler(ModelHandler):
     """
 
     PREDICTIONS_STATS_FILE_NAME = "predictions_stats.csv"
+    PREDICTIONS_STATS_DUPLICATE_COLUMNS = ["database", "model_id"]
 
     # EVALUATORS = {}
 
@@ -126,7 +127,7 @@ class EvaluationHandler(ModelHandler):
             if preds_stats is not None:
                 preds_stats = pd.concat([preds_stats, df])
                 preds_stats = preds_stats.drop_duplicates(
-                    subset=["database", "model_id"], keep="last"
+                    subset=self.PREDICTIONS_STATS_DUPLICATE_COLUMNS, keep="last"
                 )
             else:
                 preds_stats = df
