@@ -77,18 +77,30 @@ class ModelHandler(ABC):
         """
         ignore_parent_path = model_opts.get("ignore_parent_path", False)
         version = model_opts.load_version
+
+        # * If in transfer learning, load the full model if information is provided in the weights
+        weight_dir = model_opts.get("weight_opts", {}).get("model_dir", "")
+        weight_id = model_opts.get("weight_opts", {}).get("id", "")
+        model_dir = weight_dir if weight_dir else model_opts.model_dir
+        model_id = weight_id if weight_id else model_opts.model_id
+
         old_opts = file_utils.load_config(
-            Path(model_opts.model_dir)
-            / model_opts.model_id
-            / str(version)
-            / cls.NETWORK_OPTION_FILENAME,
+            Path(model_dir) / model_id / str(version) / cls.NETWORK_OPTION_FILENAME,
             ignore_parent_path,
         )
         old_opts["data_config"] = model_opts.get("data_config", "")
         # * To load the model, we use the old opts updated by the scenario, except for the id
         opts = ModelOptions(old_opts)
+
+        # * Rename ids in transfer learning, not when performing inference
+        except_keys = (
+            ["id", "id_prefixes"]
+            if not model_opts.get("transfer_learning", False)
+            else []
+        )
+
         common_utils.deep_dict_update(
-            opts.opts, model_opts.opts, except_keys=["id", "id_prefixes"]
+            opts.opts, model_opts.opts, except_keys=except_keys
         )
 
         model = cls.get_model_instance(opts)
