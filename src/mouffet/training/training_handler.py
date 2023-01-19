@@ -101,7 +101,11 @@ class TrainingHandler(ModelHandler):
                 return 2
 
             # *  Get model instance
-            model = self.get_model_instance(model_opts)
+            if model_opts.get("transfer_learning", False):
+                model = self.load_model(model_opts)
+                model_opts = model.opts
+            else:
+                model = self.get_model_instance(model_opts)
             if not model.check_options():
                 common_utils.print_error(
                     "Skipping training because options are invalid"
