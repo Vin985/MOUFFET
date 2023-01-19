@@ -97,31 +97,31 @@ class DLModel(Model):
         next_batch_start = 1
         epoch_batches = []
         for i, batch_len in enumerate(n_epochs):
+            if batch_len:
+                # * From epoch greater than total count: skip batch
+                epoch_count += batch_len
+                if from_epoch > epoch_count:
+                    continue
 
-            # * From epoch greater than total count: skip batch
-            epoch_count += batch_len
-            if from_epoch > epoch_count:
-                continue
+                batch = {}
 
-            batch = {}
+                if from_epoch and not from_epoch_met:
+                    batch["start"] = from_epoch
+                    from_epoch_met = True
+                else:
+                    batch["start"] = next_batch_start
 
-            if from_epoch and not from_epoch_met:
-                batch["start"] = from_epoch
-                from_epoch_met = True
-            else:
-                batch["start"] = next_batch_start
+                next_batch_start += batch_len
 
-            next_batch_start += batch_len
+                batch["end"] = epoch_count
+                batch["length"] = batch["end"] - batch["start"] + 1
 
-            batch["end"] = epoch_count
-            batch["length"] = batch["end"] - batch["start"] + 1
+                if i >= len(learning_rates):
+                    batch["learning_rate"] = learning_rates[-1]
+                else:
+                    batch["learning_rate"] = learning_rates[i]
 
-            if i >= len(learning_rates):
-                batch["learning_rate"] = learning_rates[-1]
-            else:
-                batch["learning_rate"] = learning_rates[i]
-
-            epoch_batches.append(batch)
+                epoch_batches.append(batch)
 
         if self.opts.get("transfer_learning", False):
             logging.debug("Performing transfer learning, retrieving additional batches")
