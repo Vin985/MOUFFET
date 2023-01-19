@@ -138,7 +138,6 @@ class Dataset(DataStructure):
         """
         if data:
             for key, value in data.items():
-                print(value)
                 if isinstance(value, pd.DataFrame):
                     if value.empty:
                         continue
