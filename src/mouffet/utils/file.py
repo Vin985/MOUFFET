@@ -45,6 +45,9 @@ def list_folder(path, extensions=None):
 
 
 def load_yaml(path):
+    path = Path(path)
+    if not path.exists():
+        return {}
     with open(path, "r") as stream:
         config = yaml.load(stream, Loader=yaml.Loader)
         if config is None:
