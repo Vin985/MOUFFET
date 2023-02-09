@@ -63,10 +63,12 @@ class FlowersClassifier(DLModel):
         self.model.save_weights(path)  # pylint: disable=no-member
 
     def load_weights(self):
-        print("Loading pre-trained weights")
-        self.model.load_weights(  # pylint: disable=no-member
-            self.opts.get_weights_path()
-        ).expect_partial()
+        weights_path = self.opts.get_weights_path()
+        print(f"Loading pre-trained weights from {weights_path}")
+
+        self.model.load_weights(
+            weights_path
+        ).expect_partial()  # pylint: disable=no-member
 
     def predict(self, x):
         return tf.nn.softmax(self.model.predict(x)).numpy()
