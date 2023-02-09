@@ -79,10 +79,10 @@ class ModelHandler(ABC):
         version = model_opts.load_version
 
         # * If in transfer learning, load the full model if information is provided in the weights
-        weight_dir = model_opts.get("weight_opts", {}).get("model_dir", "")
-        weight_id = model_opts.get("weight_opts", {}).get("id", "")
-        model_dir = weight_dir if weight_dir else model_opts.model_dir
-        model_id = weight_id if weight_id else model_opts.model_id
+        weight_opts = model_opts.get("weights_opts", {})
+        model_dir = weight_opts.get("model_dir", model_opts.model_dir)
+        model_id = weight_opts.get("name", model_opts.model_id)
+        # model_name = weight_opts.get("name", model_opts.name)
 
         old_opts = file_utils.load_config(
             Path(model_dir) / model_id / str(version) / cls.NETWORK_OPTION_FILENAME,
@@ -93,11 +93,16 @@ class ModelHandler(ABC):
         opts = ModelOptions(old_opts)
 
         # * Rename ids in transfer learning, not when performing inference
+        # except_keys = ["id", "id_prefixes"]
         except_keys = (
-            ["id", "id_prefixes"]
+            ["suffix", "suffix_prepend"]
             if not model_opts.get("transfer_learning", False)
             else []
         )
+
+        if model_opts.get("inference", False) and "weights_opts" in opts:
+            # * Remove old weight_opts if in inference mode to avoid conflicts
+            opts.opts.pop("weights_opts")
 
         common_utils.deep_dict_update(
             opts.opts, model_opts.opts, except_keys=except_keys

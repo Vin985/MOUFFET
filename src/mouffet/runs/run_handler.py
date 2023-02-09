@@ -33,6 +33,14 @@ class RunHandler:
         for run in self.args.runs:
             self.launch_run(run)
 
+    def clean_model_options(self, models):
+        for model in models:
+            if "weights_opts" in model:
+                # * Remove information about weight loading used in training for the evaluation as
+                # * it prevents the new weights from being loaded
+                model["weights_opts"] = {}
+        return models
+
     def launch_run(self, run):
         opts_path = Path(self.args.run_dir) / run
         dest_dir = Path(self.args.dest_dir) / run
@@ -95,6 +103,7 @@ class RunHandler:
             )
         if models_stats is not None:
             models = [ast.literal_eval(row.opts) for row in models_stats.itertuples()]
+            models = self.clean_model_options(models)
             evaluation_config["models"] = models
             evaluator = self.handler_classes["evaluation"](
                 opts=evaluation_config, dh_class=self.handler_classes["data"]
