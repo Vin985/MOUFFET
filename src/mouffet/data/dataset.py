@@ -128,9 +128,9 @@ class Dataset(DataStructure):
             missing=missing,
             overwrite=overwrite,
         )
-        self.save(loader.data)
+        self.save(loader.data, missing)
 
-    def save(self, data):
+    def save(self, data, missing=None):
         """_summary_
 
         Args:
@@ -138,32 +138,33 @@ class Dataset(DataStructure):
         """
         if data:
             for key, value in data.items():
-                if isinstance(value, pd.DataFrame):
-                    if value.empty:
-                        continue
-                else:
-                    if not value:
-                        continue
-                path = self.paths["save_dests"][self.db_type][key]
-                if path.suffix == ".pkl":
-                    with open(
-                        file_utils.ensure_path_exists(path, is_file=True), "wb"
-                    ) as f:
-                        pickle.dump(value, f, -1)
-                        print("Saved file: ", path)
-                elif path.suffix == ".feather":
+                if missing and key in missing:
                     if isinstance(value, pd.DataFrame):
-                        value = value.reset_index(drop=True)
-                        feather.write_dataframe(value, path)
+                        if value.empty:
+                            continue
                     else:
-                        raise (
-                            ValueError(
-                                (
-                                    "Trying to write feather data from a source that"
-                                    + " is not a dataframe for key {}"
-                                ).format(key)
+                        if not value:
+                            continue
+                    path = self.paths["save_dests"][self.db_type][key]
+                    if path.suffix == ".pkl":
+                        with open(
+                            file_utils.ensure_path_exists(path, is_file=True), "wb"
+                        ) as f:
+                            pickle.dump(value, f, -1)
+                            print("Saved file: ", path)
+                    elif path.suffix == ".feather":
+                        if isinstance(value, pd.DataFrame):
+                            value = value.reset_index(drop=True)
+                            feather.write_dataframe(value, path)
+                        else:
+                            raise (
+                                ValueError(
+                                    (
+                                        "Trying to write feather data from a source that"
+                                        + " is not a dataframe for key {}"
+                                    ).format(key)
+                                )
                             )
-                        )
 
     def get_loader(self):
         loader_cls = self.LOADERS[self.database.get("loader", "default")]

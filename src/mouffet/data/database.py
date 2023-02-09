@@ -194,7 +194,7 @@ class Database(DatabaseOptions):
         )
         missing = dataset.exists(file_types)
         if missing or overwrite:
-            dataset.generate(self.load_file_list(db_type), missing, overwrite)
+            dataset.generate(self.check_file_list(db_type), missing, overwrite)
         return dataset
 
     def check_database(self, db_types=None):
