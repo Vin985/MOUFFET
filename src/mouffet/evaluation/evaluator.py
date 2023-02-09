@@ -17,6 +17,11 @@ class Evaluator(ABC):
 
     DEFAULT_PLOTS = []
 
+    REQUIRES = []
+
+    def requires(self, options):
+        return self.REQUIRES
+
     def run_evaluation(self, data, options, infos):
         res = {}
         if options.get("filter_only", False):
@@ -69,7 +74,7 @@ class Evaluator(ABC):
                 res[to_plot] = tmp
         return res
 
-    def filter_predictions(self, data, options, tags=None):
+    def filter_predictions(self, predictions, options, tags=None):
         return []
 
     def check_database(self, data, options, infos):
