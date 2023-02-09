@@ -53,7 +53,7 @@ class DataLoader:
         data, tags = [], []
         return data, tags
 
-    def finalize_dataset(self):
+    def finalize_dataset(self, missing):
         """Callback function called after data generation is finished but before it is saved
         in case some further action must be done after all files are loaded
         (e.g. dataframe concatenation)
