@@ -68,7 +68,6 @@ class TrainingHandler(ModelHandler):
         return db_opts
 
     def is_already_trained(self, scenario, models_stats, model_opts):
-        print(model_opts)
         if model_opts.get("skip_trained", False):
             print("Checking if already trained")
             tmp = models_stats.loc[
@@ -93,7 +92,6 @@ class TrainingHandler(ModelHandler):
             if models_stats_path.exists():
                 models_stats = pd.read_csv(models_stats_path)
             # * Check if model has already been trained
-            print(models_stats_path)
             if models_stats is not None and self.is_already_trained(
                 scenario, models_stats, model_opts
             ):
