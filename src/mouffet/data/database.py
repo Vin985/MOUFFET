@@ -156,7 +156,9 @@ class Database(DatabaseOptions):
         split_opts = self.get("split", None)
         if not split_opts:
             raise ValueError("Split option must be provided for splitting")
-        split_func = self.SPLIT_FUNCS.get(self.name, random_split)
+        split_func = self.SPLIT_FUNCS.get(
+            split_opts.get("type", self.name), random_split
+        )
         split_props = []
         # * Make test split optional
         test_split = split_opts.get("test", 0)
