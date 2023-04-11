@@ -108,7 +108,7 @@ class Database(DatabaseOptions):
             file_list_paths = [self.paths["file_list"][db_type] for db_type in db_types]
         file_lists_exist = all([path.exists() for path in file_list_paths])
         # * Check if file lists are missing or need to be regenerated
-        if not file_lists_exist or self.generate_file_lists:
+        if not file_lists_exist or self.get("generate_file_lists", False):
             self.generate_file_lists()
         else:
             file_lists = self.load_file_lists(db_types)
@@ -211,7 +211,7 @@ class Database(DatabaseOptions):
             if db_types and db_type in db_types:
 
                 # * Overwrite if generate_file_lists is true as file lists will be recreated
-                overwrite = self.overwrite or self.generate_file_lists
+                overwrite = self.overwrite or self.get("generate_file_lists", False)
                 dataset = self.DATASET(
                     database=self,
                     db_type=db_type,
