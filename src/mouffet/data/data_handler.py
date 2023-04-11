@@ -92,6 +92,10 @@ class DataHandler:
                 ),
                 new_opts,
             )
+        else:
+            common_utils.print_error(
+                f"Database {name} was not found in the data configuration file."
+            )
         return None
 
     def check_datasets(self, databases=None, db_types=None):
