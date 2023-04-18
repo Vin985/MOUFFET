@@ -57,13 +57,19 @@ class ModelOptions(Options):
     def get_results_dir(self, save=True):
         return self.results_dir_root / str(self.version(save))
 
-    def get_weights_path(self, epoch=None, version=None, as_string=True):
+    def get_weights_path(self, version=None, as_string=True):
         weight_opts = self.get("weights_opts", {})
+        name = weight_opts.get("name", "")
         path = weight_opts.get("path", "")
+
+        if self.inference:
+            # * Use model own weights in inference mode
+            name = ""
+            path = ""
+
         if path:
             return path
 
-        name = weight_opts.get("name", "")
         if name and name != self.model_id:
             # * Load weights from another model
             # * For that, create a new model options with the new name
