@@ -15,7 +15,7 @@ class Evaluator(ABC):
         "values": {"start": 0, "end": 1, "step": 0.05},
     }
 
-    DEFAULT_PLOTS = []
+    PLOTS = {}
 
     REQUIRES = []
 
@@ -43,11 +43,17 @@ class Evaluator(ABC):
         return {"stats": None, "matches": None}
 
     def get_PR_scenarios(self, options):
-        opts = common_utils.deep_dict_update(
-            self.DEFAULT_PR_CURVE_OPTIONS, options.pop("PR_curve", {})
-        )
-        options[opts["variable"]] = opts["values"]
-        scenarios = common_utils.expand_options_dict(options)
+        pr_scenarios = options.get("scenarios_PR_curve", {})
+        if not pr_scenarios:
+            common_utils.print_warning(
+                "do_PR_curve is set to True but no option for scenarios_PR_curve has been found."
+            )
+        scenarios = []
+        for scenario in common_utils.expand_options_dict(pr_scenarios):
+            tmp = common_utils.deep_dict_update(options, scenario, copy=True)
+            # options[opts["variable"]] = opts["values"]
+            scenarios.append(tmp)
+        # scenarios = common_utils.expand_options_dict(options)
         return scenarios
 
     def get_PR_curve(self, data, options, infos):
@@ -66,12 +72,17 @@ class Evaluator(ABC):
 
     def draw_plots(self, data, options, infos):
         res = {}
-        plots = options.get("plots", self.DEFAULT_PLOTS)
+        plots = options.get("plots", [])
         for to_plot in plots:
-            func_name = "plot_" + to_plot.strip()
-            if hasattr(self, func_name) and callable(getattr(self, func_name)):
-                tmp = getattr(self, func_name)(data, options, infos)
+            func = self.PLOTS.get(to_plot, None)
+            if func is not None:
+                tmp = func(data, options, infos)
                 res[to_plot] = tmp
+
+            # func_name = "plot_" + to_plot.strip()
+            # if hasattr(self, func_name) and callable(getattr(self, func_name)):
+            #     tmp = getattr(self, func_name)(data, options, infos)
+            #     res[to_plot] = tmp
         return res
 
     def filter_predictions(self, predictions, options, tags=None):
