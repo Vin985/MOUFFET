@@ -7,12 +7,10 @@ import pandas as pd
 
 from ..data import DB_TYPE_TRAINING, DB_TYPE_VALIDATION
 from ..options import ModelOptions
-from ..utils import ModelHandler, common_utils, file_utils
+from ..utils import ModelHandler, common_utils, file_utils, config_utils
 
 
 class TrainingHandler(ModelHandler):
-
-    MODELS_STATS_FILE_NAME = "models_stats.csv"
 
     DB_TYPES = [
         DB_TYPE_TRAINING,
@@ -88,7 +86,9 @@ class TrainingHandler(ModelHandler):
             model_opts = ModelOptions(copy.deepcopy(scenario))
 
             # * Load model stats database
-            models_stats_path = model_opts.model_dir / self.MODELS_STATS_FILE_NAME
+            models_stats_path = (
+                model_opts.model_dir / config_utils.MODELS_STATS_FILE_NAME
+            )
             if models_stats_path.exists():
                 models_stats = pd.read_csv(models_stats_path)
             # * Check if model has already been trained

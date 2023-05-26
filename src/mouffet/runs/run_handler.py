@@ -1,10 +1,12 @@
-from .parser import RunArgumentParser
-from pathlib import Path
 import ast
 import shutil
+from pathlib import Path
 
 import pandas as pd
-from mouffet import common_utils, file_utils
+
+from mouffet import common_utils, config_utils, file_utils
+
+from .parser import RunArgumentParser
 
 
 class RunHandler:
@@ -90,12 +92,10 @@ class RunHandler:
         evaluation_config["evaluation_dir"] = str(evaluation_dir)
 
         # * Data config could be overloaded by model so do not force it
-        if not "data_config" in evaluation_config:
+        if "data_config" not in evaluation_config:
             evaluation_config["data_config"] = str(opts_path / self.args.data_config)
 
-        models_stats_path = Path(
-            model_dir / self.handler_classes["training"].MODELS_STATS_FILE_NAME
-        )
+        models_stats_path = Path(model_dir) / config_utils.MODELS_STATS_FILE_NAME
         models_stats = None
         if models_stats_path.exists():
             models_stats = pd.read_csv(models_stats_path).drop_duplicates(
