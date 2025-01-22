@@ -142,8 +142,8 @@ class EvaluationHandler(ModelHandler):
     def consolidate_results(self, results):
         res = common_utils.listdict2dictlist(results)
         if res:
-            if "matches" in res:
-                res["matches"] = pd.concat(res["matches"])
+            # if "matches" in res:
+            #     res["matches"] = pd.concat(res["matches"])
             if "stats" in res:
                 res["stats"] = pd.concat(res["stats"])
             if "plots" in res:
